@@ -1,3 +1,11 @@
+# Real fíles
+*.raw
+*.txt
+*.pgm
+*.png
+
+test/*/2d_*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
