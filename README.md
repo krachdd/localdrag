@@ -146,14 +146,14 @@ provided in the topmost directory of source code tree.
 
 ## How to cite
 
-The module is research software and developed at research institutions. You can cite **specific releases** via [**DaRUS**](https://doi.org/10.18419/darus-XYXY).
+The module is research software and developed at research institutions. You can cite **specific releases** via [**DaRUS**](https://doi.org/10.18419/darus-4313).
 *Put Ref to Paper here*.
 
 
 ## Links to Stokes Solvers
 
 poremaps: [**DaRUS**](https://doi.org/10.18419/darus-XYXY)\
-DumuX : [**DaRUS**](https://doi.org/10.18419/darus-4313)
+DumuX : [**DaRUS**](https://doi.org/10.18419/darus-XYXY)
 
 
 ## Acknowledgements
