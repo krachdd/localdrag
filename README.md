@@ -153,7 +153,7 @@ The module is research software and developed at research institutions. You can 
 ## Links to Stokes Solvers
 
 poremaps: [**DaRUS**](https://doi.org/10.18419/darus-XYXY)\
-DumuX : [**DaRUS**](https://doi.org/10.18419/darus-XYXY)
+DumuX : [**DaRUS**](https://doi.org/10.18419/darus-4313)
 
 
 ## Acknowledgements
