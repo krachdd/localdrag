@@ -146,8 +146,31 @@ provided in the topmost directory of source code tree.
 
 ## How to cite
 
-The module is research software and developed at research institutions. You can cite **specific releases** via [**DaRUS**](https://doi.org/10.18419/darus-4313).
-*Put Ref to Paper here*.
+The solver is research software and developed at a research institute. Please cite **specific releases** according to [**DaRUS**](https://doi.org/10.18419/darus-4313) version.
+
+If you are using localdrag in scientific publications and in the academic context, please cite our publications:
+
+```bib
+@unpublished{Krach2024a,
+    author = {Krach, David and Ruf, Matthias and Steeb, Holger},
+    title = {A novel geometry-informed drag term formulation for height-averaged Stokes simulations with varying apertures},
+    year={2024},
+    journal={Advances in Water Resources},
+    note = {(to be submitted)} 
+}
+```
+
+```bib
+@data{Krach2024b,
+author = {Krach, David and Weinhardt, Felix and Wang, Mingfeng and Schneider, Martin and Class, Holger and Steeb, Holger},
+publisher = {DaRUS},
+title = {{A novel geometry-informed drag term formulation for height-averaged Stokes simulations with varying apertures}},
+year = {2024},
+version = {DRAFT VERSION},
+doi = {10.18419/darus-4313},
+url = {https://doi.org/10.18419/darus-4313}
+}
+```
 
 
 ## Links to Stokes Solvers
