@@ -175,9 +175,11 @@ If you are using localdrag in scientific publications and in the academic contex
 
 ## Links to Stokes Solvers
 
-poremaps: [**DaRUS**](https://doi.org/10.18419/darus-XYXY)\
-DumuX : [**DaRUS**](https://doi.org/10.18419/darus-XYXY)
+Links to the different numerical solver employed in the paper are listed below.
 
+1. poremaps: [**DaRUS**](https://doi.org/10.18419/darus-3676), [**GIT**](https://git.rwth-aachen.de/david.krach/poremaps)
+2. Dumux : [**DaRUS**](https://doi.org/10.18419/darus-XYXY), [**GIT**](https://git.iws.uni-stuttgart.de/dumux-repositories/dumux)
+3. OpenFOAM : [**GIT**](https://develop.openfoam.com/Development/openfoam)
 
 ## Acknowledgements
 Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany's Excellence Strategy (Project number 390740016 - EXC 2075 and the Collaborative Research Center 1313 (project number 327154368 - SFB1313). We acknowledge the support by the Stuttgart Center for Simulation Science (SimTech).
