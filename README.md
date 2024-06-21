@@ -162,13 +162,13 @@ If you are using localdrag in scientific publications and in the academic contex
 
 ```bib
 @data{Krach2024b,
-author = {Krach, David and Weinhardt, Felix and Wang, Mingfeng and Schneider, Martin and Class, Holger and Steeb, Holger},
-publisher = {DaRUS},
-title = {{A novel geometry-informed drag term formulation for height-averaged Stokes simulations with varying apertures}},
-year = {2024},
-version = {DRAFT VERSION},
-doi = {10.18419/darus-4313},
-url = {https://doi.org/10.18419/darus-4313}
+    author = {Krach, David and Weinhardt, Felix and Wang, Mingfeng and Schneider, Martin and Class, Holger and Steeb, Holger},
+    publisher = {DaRUS},
+    title = {{A novel geometry-informed drag term formulation for height-averaged Stokes simulations with varying apertures}},
+    year = {2024},
+    version = {DRAFT VERSION},
+    doi = {10.18419/darus-4313},
+    url = {https://doi.org/10.18419/darus-4313}
 }
 ```
 
