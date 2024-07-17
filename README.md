@@ -188,3 +188,7 @@ Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) unde
 
 - [David Krach](https://www.mib.uni-stuttgart.de/institute/team/Krach/) E-mail: [david.krach@mib.uni-stuttgart.de](mailto:david.krach@mib.uni-stuttgart.de)
 - [Felix Weinhardt](https://www.mib.uni-stuttgart.de/de/institut/team/Weinhardt-00003/) E-mail: [felix.weinhardt@mib.uni-stuttgart.de](mailto:felix.weinhardt@mib.uni-stuttgart.de)
+
+## Contact
+[Software Support Institute of Applied Mechanics](mailto:software@mib.uni-stuttgart.de)
+[Data Support Institute of Applied Mechanics](mailto:data@mib.uni-stuttgart.de)
