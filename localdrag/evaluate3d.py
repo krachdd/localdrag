@@ -30,6 +30,7 @@ THE SOFTWARE.
 
 import numpy as np
 import os
+import fluidfoam
 
 import localdrag as ld
 
@@ -222,3 +223,67 @@ def get_hmap01(geom):
             h_map[j,k] = 1.0 - np.mean(geom[:, j, k])
             
     return h_map
+
+
+
+def read_openfoam_results(path, filename, timestep):
+    """
+
+    """
+
+    # get the absolute path of the simulation case
+    fullpath = os.path.join(path, filename) 
+
+    vel      = fluidfoam.readvector(fullpath, timestep, 'U')
+    x, y, z  = fluidfoam.readmesh(fullpath)
+    press    = fluidfoam.readscalar(fullpath, timestep, 'p')
+
+    return x, y, z, vel, press
+
+
+def collapse_openfoam_results(path, filename, timestep, size, voxelsize)
+    """
+    """
+
+    x, y, z, vel, press = read_openfoam_results(path, filename, timestep)
+
+    # get domain sizes in meter
+    sim_dom_size      = np.asarray(size) * voxelsize
+    total_mesh_number = size[0] * size[1] * size[2]
+
+    # velocity/pressure data structured
+    vel_structured   = np.zeros((3, total_mesh_number), dtype = float)
+    press_structured = np.zeros((1, total_mesh_number), dtype = float)
+
+    # step 2: unstructural mesh to structural mesh
+    for k in np.arange(size[2]):
+        for j in np.arange(size[1]):
+            for i in np.arange(size[0]):
+                condition = (x >= i*voxelsize) & (x < (i+1)*voxelsize) & (y >= j*voxelsize) & (y < (j+1)*voxelsize) & (z >= k*voxelsize) & (z < (k+1)*voxelsize)
+                vel_structured[0,(i+j*size[0]+k*size[1]*size[0])] = np.mean(vel[0][condition]) # global index: i+j*size[0]+k*size[1]
+                vel_structured[1,(i+j*size[0]+k*size[1]*size[0])] = np.mean(vel[1][condition])
+                vel_structured[2,(i+j*size[0]+k*size[1]*size[0])] = np.mean(vel[2][condition])
+                press_structured[(i+j*size[0]+k*size[1]*size[0])] = np.mean(press[condition])
+
+    # Average velocity/pressure
+    vel_structured_x = vel_structured[0].reshape((size[2], (size[0]*size[1]))) # every row represents the velocity of every x-y plan; Uusx is the X-velocity of the structured mesh
+    vel_structured_y = vel_structured[1].reshape((size[2], (size[0]*size[1])))
+    vel_structured_z = vel_structured[2].reshape((size[2], (size[0]*size[1])))
+    press_structured = press_structured.reshape((size[2], (size[0]*size[1])))
+
+    vel_structured_x = np.nan_to_num(vel_structured_x)
+    vel_structured_y = np.nan_to_num(vel_structured_y)
+    vel_structured_z = np.nan_to_num(vel_structured_z)
+
+
+    # averate the results in z directions
+    vel_structured_x = np.mean(vel_structured_x, axis=0).reshape(size[0], size[1])
+    vel_structured_y = np.mean(vel_structured_y, axis=0).reshape(size[0], size[1])
+    vel_structured_z = np.mean(vel_structured_z, axis=0).reshape(size[0], size[1])
+    press_structured = np.nanmean(press_structured, axis=0).reshape(size[0], size[1])
+
+    ld.write_maps.write2txt(path, filename, 'velx', vel_structured_x)
+    ld.write_maps.write2txt(path, filename, 'vely', vel_structured_y)
+    ld.write_maps.write2txt(path, filename, 'velz', vel_structured_z)
+    ld.write_maps.write2txt(path, filename, 'press', press_structured)
+

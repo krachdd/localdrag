@@ -129,3 +129,65 @@ def smooth_factor_map(a, sigma):
     """
 
     return scipy.ndimage.gaussian_filter(a, sigma = sigma, mode = 'reflect')
+
+
+def eigenvalues2d(array):
+    """
+    
+    Parameters
+    ----------
+    array : 2 x 2 array 
+        Second order permeability tensor.
+    
+    Returns
+    -------
+    Eigenvalues.
+    """
+
+    # check if there is no path one of the directions
+    # if yes non-diagonal elements are zero
+    if array[0, 1] == 0.0 or array[1, 0] == 0.0:
+        a12 = 0.0
+    else:
+        a12 = (array[0, 1] + array[1, 0])/2.
+    
+    array[0, 1] = a12
+    array[1, 0] = a12
+    
+    w, v = scipy.linalg.eig(np.asarray(array))
+
+
+    if w.dtype == 'complex128' or w.dtype == 'complex64':
+        return np.array( [w[0].real, w[1].real ] )
+    else: 
+        return np.asarray(w)
+
+
+def eigendir_angle_2d(array, grad = True):
+    """
+    
+    Parameters
+    ----------
+    array : 2 x 2 array 
+        Second order permeability tensor..
+    
+    Returns
+    -------
+    Principal direction.
+    """
+    
+    # check if there is no path one of the directions
+    # if yes non-diagonal elements are zero
+    if array[0, 1] == 0.0 or array[1, 0] == 0.0:
+        a12 = 0.0
+    else:
+        a12 = (array[0, 1] + array[1, 0])/2.
+    
+    array[0, 1] = a12
+    array[1, 0] = a12
+    
+    angle = 0.5 * np.arctan(2* array[0,1]/(array[0,0] - array[1,1]))
+    if grad:
+        return angle * 180./np.pi
+    else:
+        return angle

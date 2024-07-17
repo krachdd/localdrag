@@ -45,6 +45,9 @@ STOKES_rho0 = 1000.
 # Stokes Solver File prefixes
 STOKES_FILE_PREFIXES = ['geom', 'velx', 'vely', 'velz', 'press']
 
+# Dumux Solver Field
+DUMUX_FIELDS_PREFIXES = ['relheight', 'p', 'velocity_liq (m/s)']
+
 
 
 

@@ -153,7 +153,7 @@ If you are using localdrag in scientific publications and in the academic contex
 ```bib
 @unpublished{Krach2024a,
     author = {Krach, David and Ruf, Matthias and Steeb, Holger},
-    title = {A novel geometry-informed drag term formulation for height-averaged Stokes simulations with varying apertures},
+    title = {POREMAPS: A finite difference based Porous Media Anisotropic Permeability Solver for Stokes flow},
     year={2024},
     journal={Advances in Water Resources},
     note = {(to be submitted)} 

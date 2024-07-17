@@ -291,5 +291,91 @@ def getNumVoxelFrom2DName(fn):
 
 
 
+def openvtu_2d_dumux(filename, options_list):
+    """
+    
+    Parameters
+    ----------
+    filename : str
+        DESCRIPTION.
+    options_list : list
+        containing all fields that should be loaded
+    Returns
+    -------
+    Dictionary: {key(entry in options_list): field as np.ndarray}
+    
+    
+    """
+    # MISSING SANITY CHECK!! 
+
+    dict_to_return = {}
+    
+    print(f'Read vtk-file: {filename}')
+    # Initalize Reader and get data
+    
+    reader = vtk.vtkXMLUnstructuredGridReader()
+    reader.SetFileName(filename)
+    reader.Update()
+    data = reader.GetOutput()
+    
+    # Read the Particle Positions
+    vtk_points = data.GetPoints().GetData()
+    point_position = VN.vtk_to_numpy(vtk_points)
+    coordinates = np.array(vtk_points)
+    converter = vtk.vtkCellDataToPointData()  
+    converter.SetInputConnection(reader.GetOutputPort() )
+    converter.Update() 
+
+    print(f'Read Positions: Number of loaded points {point_position.shape[0]}')
+
+    # Add Points and TypeId to return dictionary
+    dict_to_return['Points'] = point_position
+
+
+    reader.GetOutputPort() 
+    # Loop over all fields to extract and save them in return dict
+    for field in options_list:
+        # vtk_field = data.GetCellData().GetArray(field)
+
+        point_field = np.array(converter.GetOutput().GetPointData().GetArray(field))
+
+        # point_field = VN.vtk_to_numpy(vtk_field)
+        print(f'Load field {field}')
+        dict_to_return[field] = point_field
+    
+
+    return dict_to_return
+
+
+def extract_fields(data):
+    """
+    
+
+    Parameters
+    ----------
+    data : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    points   = data['Points'][:,0:2]
+    velmag   = np.sqrt(data['velocity_liq (m/s)'][:, 0]**2 
+               + data['velocity_liq (m/s)'][:, 1]**2 
+               + data['velocity_liq (m/s)'][:, 2]**2)
+    h        = data['relheight']
+    p        = data['p']
+    velx     = data['velocity_liq (m/s)'][:,0]
+    vely     = data['velocity_liq (m/s)'][:,1]
+    
+    velmag[np.isnan(velmag)] = 0
+    velx[np.isnan(velx)] = 0
+    vely[np.isnan(vely)] = 0
+
+    return points, velx, vely, velmag, p , h
+
+
 
 
