@@ -191,4 +191,5 @@ Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) unde
 
 ## Contact
 [Software Support Institute of Applied Mechanics](mailto:software@mib.uni-stuttgart.de)
+
 [Data Support Institute of Applied Mechanics](mailto:data@mib.uni-stuttgart.de)
