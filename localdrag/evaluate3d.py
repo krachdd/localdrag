@@ -241,7 +241,7 @@ def read_openfoam_results(path, filename, timestep):
     return x, y, z, vel, press
 
 
-def collapse_openfoam_results(path, filename, timestep, size, voxelsize)
+def collapse_openfoam_results(path, filename, timestep, size, voxelsize):
     """
     """
 
