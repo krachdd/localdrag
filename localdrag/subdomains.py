@@ -97,6 +97,47 @@ def all_limits(shape, DD_TYPE, DECOMP, rank, verbose = False):
     return all_limits
 
 
+def all_limits_REV(MIN_VOX, STEP_VOX, shape):
+    """
+    """
+
+    all_limits = {}
+    number_domains = int(np.floor((np.min(shape) - MIN_VOX) / STEP_VOX + 1))
+
+    for i in range(number_domains):
+        size = MIN_VOX + i * STEP_VOX
+        # Upper left corner
+        c1_xstart = 0
+        c1_ystart = 0
+        c1_xend   = size
+        c1_yend   = size
+
+        # Lower left corner
+        c2_xstart = 0
+        c2_ystart = shape[0] - size
+        c2_xend   = size
+        c2_yend   = shape[0] 
+
+        # Upper right corner 
+        c3_xstart = shape[1] - size
+        c3_ystart = 0
+        c3_xend   = shape[1]
+        c3_yend   = size 
+
+        # Lower right corner
+        c4_xstart = shape[1] - size
+        c4_ystart = shape[0] - size
+        c4_xend   = shape[1]
+        c4_yend   = shape[0] 
+
+        all_limits[f'C1_{int(size)}'] = [[c1_ystart, c1_yend], [c1_xstart, c1_xend]]
+        all_limits[f'C2_{int(size)}'] = [[c2_ystart, c2_yend], [c2_xstart, c2_xend]]
+        all_limits[f'C3_{int(size)}'] = [[c3_ystart, c3_yend], [c3_xstart, c3_xend]]
+        all_limits[f'C4_{int(size)}'] = [[c4_ystart, c4_yend], [c4_xstart, c4_xend]]
+
+    return all_limits
+
+
 
 # def keys_per_rank(all_limits, nprocs, rank):
 #     """

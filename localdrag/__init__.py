@@ -5,6 +5,7 @@ __all__ = [
     'evaluate3d'                ,
     'evaluate_pseudo3d'         ,
     'maps_and_distances'        ,
+    'parallelization'           ,
     'porespace'                 ,
     'postprocessing_sweep'      ,
     'run_dumux'                 ,
