@@ -32,13 +32,15 @@ import numpy as np
 import os
 import scipy
 import matplotlib.pyplot as plt
+import shutil
+import time
 
 import localdrag as ld
 
 ###--------------------------------------------------------------------------------
 
 
-def update_input_parameter_file(folder, myfilestr, prefactors_given):
+def update_input_parameter_file(folder, myfilestr, md):
     """
     
     Parameters
@@ -47,8 +49,8 @@ def update_input_parameter_file(folder, myfilestr, prefactors_given):
         Path to file directory with input data.
     myfilestr : string
         output file name.
-    prefactors_given : bool
-        True if modified drag formulation is used.
+    md : dict
+        Collected md.
 
     Returns
     -------
@@ -60,7 +62,9 @@ def update_input_parameter_file(folder, myfilestr, prefactors_given):
 
     hx_file = f'{myfilestr}.pgm'
 
-    if prefactors_given:
+    print(hx_file)
+
+    if md['lambda_given']:
         lambda1_file = myfilestr.replace('hx', 'lambda1')
         lambda1_file = f'{lambda1_file}.txt'
         lambda2_file = myfilestr.replace('hx', 'lambda2')
@@ -70,12 +74,12 @@ def update_input_parameter_file(folder, myfilestr, prefactors_given):
         pfMapPerp = 'noFile'
 
 
-    cellsize  = ld.wrap_import.getNumVoxelFrom2DName( myfilestr )
-    voxelsize = ld.wrap_import.getVoxelSizeFromName( myfilestr )
+    # cellsize  = ld.wrap_import.getNumVoxelFrom2DName( myfilestr )
+    _array, cellsize  = ld.wrap_import.read_pgm(f'{folder}/{hx_file}')
     cells_x   = str( cellsize[1] )
     cells_y   = str( cellsize[0] )
-    size_x    = str(round( cellsize[1] * voxelsize, 6 ) ) # main pressure gradient direction
-    size_y    = str(round( cellsize[0] * voxelsize, 6 ) ) # perp direction
+    size_x    = str(round( cellsize[1] * float( md['voxelsize'] ), 6 ) ) # main pressure gradient direction
+    size_y    = str(round( cellsize[0] * float( md['voxelsize'] ), 6 ) ) # perp direction
 
                 
     text_to_search_list = [ 
@@ -83,7 +87,10 @@ def update_input_parameter_file(folder, myfilestr, prefactors_given):
                             '<name>', 
                             '<domainSizeX>', '<domainSizeY>', 
                             '<cellsX>', '<cellsY>',
-                            '<PreFactorDragFileX>', '<PreFactorDragFileY>'
+                            '<PreFactorDragFileX>', '<PreFactorDragFileY>',
+                            '<WriteVtuData>', 
+                            '<height>', 
+                            '<deltaP>'
                           ]
     
     params              = [ 
@@ -91,7 +98,10 @@ def update_input_parameter_file(folder, myfilestr, prefactors_given):
                             myfilestr, 
                             size_x, size_y, 
                             cells_x, cells_y, 
-                            lambda1_file, lambda2_file 
+                            lambda1_file, lambda2_file,
+                            str( md['vtuOutput'] ),
+                            str( md['height'] ), 
+                            str( md['pressure'] )
                           ]
     
     # print(f'Params: {params}')
@@ -186,7 +196,7 @@ def run(metadata, myfilestr):
     # reverse  
     datadir            = metadata['datadir']
     generic_input_file = metadata['generic_input_file']
-    prefactors_given   = metadata['prefactors_given']
+    lambda_given       = metadata['lambda_given']
     verbose            = metadata['verbose']
     copy_run           = metadata['copy_run']
     executable         = metadata['executable']
@@ -200,7 +210,7 @@ def run(metadata, myfilestr):
 
     # string operations to get filenames
     myfilestr = myfilestr.replace('.pgm', '')
-    myfilestr = myfilestr.replace(datadir, '')
+    myfilestr = myfilestr.replace(f'{datadir}/', '')
 
     input_file_name  = f'{myfilestr}.input'
     output_file_name = f'{myfilestr}.output'
@@ -209,7 +219,7 @@ def run(metadata, myfilestr):
     # copy and run 
     if copy_run:
         shutil.copyfile(generic_input_file, f'{datadir}/{input_file_name}')
-        update_input_parameter_file(datadir, myfilestr, prefactors_given)
+        update_input_parameter_file(datadir, myfilestr, metadata)
 
         # Start timer for simulation
         start = time.time()

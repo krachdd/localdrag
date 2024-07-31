@@ -99,7 +99,7 @@ def get_sample(myfilestr):
     return int(key.split("_")[0]), int(key.split("_")[-1])
 
 
-def crawl_output(filelist, metadata):
+def crawl_output_sweep(filelist, metadata):
     """
     Parameters
     ----------
@@ -164,6 +164,52 @@ def crawl_output(filelist, metadata):
     fmt    = '%02d', '%02d', '%.6g', '%.6g', '%1.5f'
     header = 'sample_row, sample_column, k11 [m^2], k12 [m^2], simtime [s]'
     np.savetxt(f'{savedir}/{fn}', logdata, fmt = fmt, header = header, delimiter = ',')
+
+
+def crawl_output_benchmark(filelist, metadata):
+    """
+    Parameters
+    ----------
+    filelist : list 
+        list of strings with files contaning metadata
+    metadata : dictionary 
+        containing all metadata of Dumux sims
+    
+    Returns
+    -------
+        Nothing
+
+    Crawl log files and save relevant data to txt files.
+    """
+
+    datadir = metadata['datadir']
+
+    currentdir = os.getcwd()
+    os.chdir(datadir)
+
+    header = 'file, k11 [m^2], k12 [m^2], simtime [s]\n'
+
+    f = open(f'permeabilities.txt', 'w')
+    f.write(header)
+
+
+    for i in range(len(filelist)):
+        myfilestr = filelist[i]
+        myfilestr = myfilestr.replace('.pgm', '')
+        myfilestr = myfilestr.replace(f'{datadir}/', '')
+
+        output_file_name = f'{myfilestr}.output'
+
+        if not os.path.isfile(output_file_name):
+            print(f'File {output_file_name} does not exist')
+            continue
+
+        # store permeability info
+        k11, k12, simtime = seek(output_file_name)
+        f.write(f'{myfilestr}, {k11}, {k12}, {simtime}\n')
+
+    f.close()
+    os.chdir(currentdir)
 
 
 
@@ -269,4 +315,23 @@ def merge_data(op_str, rp_str, p_str, output_file_name):
 
 
 
+def all_porosities(filelist, outfolder):
+    """
+    
+    """
 
+    # fmt        = '%s', '%1.5f'
+    header = 'file, phi_org [-]\n'
+
+    f = open(f'{outfolder}/porosities.txt', 'w')
+    f.write(header)
+
+    for myfilestr in filelist:
+        array, size_ = ld.wrap_import.read_pgm(myfilestr)
+        myfilestr = myfilestr.replace('.pgm', '')
+        myfilestr = myfilestr.replace(f'{outfolder}/', '')
+        porosity  = ld.porespace.porosity(array)    
+
+        f.write(f'{myfilestr}, {porosity}\n')
+
+    f.close()
