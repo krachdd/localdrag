@@ -58,11 +58,19 @@ perp -> perpendicular pressure gradient direction
 
 """
 
-vox_per_height = 36
-voxelsize      = 1e-06
-height = voxelsize * vox_per_height
+argParser = argparse.ArgumentParser()
+argParser.add_argument("-dir",      "--rawDirectory",             help="Path to directory where .raw files are located.")
+argParser.add_argument("-vs",       "--voxelSize",    type=float, help="Defines the voxel size of the image in [m].")
+argParser.add_argument("-v_height", "--voxperheight", type=float, help="Defines the number of voxels per height of the domain [m].")
+args = argParser.parse_args()
 
-for file in glob.glob("../rawfiles/*.raw"):
+
+datadir        = args.rawDirectory
+vox_per_height = args.voxperheight
+voxelsize      = args.voxelSize
+height         = voxelsize * vox_per_height
+
+for file in glob.glob(datadir):
     print("Processing file: " + file)
     filename = file
     size = wrap_import.getNumVoxelFromName(filename)

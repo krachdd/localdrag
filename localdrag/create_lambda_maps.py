@@ -37,7 +37,7 @@ import matplotlib.pyplot as plt
 
 ###--------------------------------------------------------------------------------
 
-def lambda_wh_map(h_map01, voxelsize, vox_per_height, channelwidth, solidframe, crosssection, cs_weight):
+def lambda_wh_map(h_map01, voxelsize, height, channelwidth, solidframe, crosssection, cs_weight):
     """
     
     Parameters
@@ -48,8 +48,8 @@ def lambda_wh_map(h_map01, voxelsize, vox_per_height, channelwidth, solidframe, 
         1 (fully fluid voxel).
     voxelsize : float [ m ]
         Voxelsize of the domain.
-    vox_per_height : int 
-        Number of voxels per h_Omega.
+    height : float [ m ]
+        Height of the domain.
     channelwidth : string
         mean : return mean channel width per column
         min  : return min channel width per column
@@ -83,19 +83,19 @@ def lambda_wh_map(h_map01, voxelsize, vox_per_height, channelwidth, solidframe, 
     
     """
     # h_Omega
-    height = voxelsize * vox_per_height
     h_map_scaled = ld.maps_and_distances.scale_hmap(h_map01, height)
     h_map_scaled = ld.maps_and_distances.h_map_settle_rounding_error(h_map_scaled, voxelsize)
     
     # Get labels per cross-section
     col_labels, row_labels = ld.maps_and_distances.label_2d_geom(h_map_scaled, solidframe) 
 
-    # Comes in voxels, therefore we use h_map01 * vox_per_height to divide 
     # Results in same ratios as if it would in real dimensions
-    w_map, l_map, w_weight, l_weight = ld.maps_and_distances.get_wl_maps(h_map01, vox_per_height, voxelsize, solidframe, channelwidth)
+    w_map, l_map, w_weight, l_weight = ld.maps_and_distances.get_wl_maps(h_map01, height, voxelsize, solidframe, channelwidth)
+
+    vox_per_height = int(np.round(height/voxelsize))
 
     # Sanatize h_map01
-    h_map01 = ld.maps_and_distances.h_map01_sanatize(h_map01, voxelsize, vox_per_height)
+    h_map01 = ld.maps_and_distances.h_map01_sanatize(h_map01, voxelsize, height)
 
     if crosssection == 'mean':
         # Assign values per cross-section
@@ -250,7 +250,7 @@ def lambda_wh_map_3d(geom, voxelsize, channelwidth, solidframe, crosssection, cs
     return h_map_scaled, lambda1, lambda2
 
 
-def lambda_gi_map(h_map01, voxelsize, vox_per_height, smooth = False, sigma = 0.0):
+def lambda_gi_map(h_map01, voxelsize, height, smooth = False, sigma = 0.0):
     """
     
     Parameters
@@ -261,8 +261,8 @@ def lambda_gi_map(h_map01, voxelsize, vox_per_height, smooth = False, sigma = 0.
         1 (fully fluid voxel).
     voxelsize : float [ m ]
         Voxelsize of the domain.
-    vox_per_height : int 
-        Number of voxels per h_Omega.
+    height : float [ m ]
+        Height of the domain.
     smooth : bool 
         Smooth the gradient before factor computation
     sigma : float
@@ -282,7 +282,6 @@ def lambda_gi_map(h_map01, voxelsize, vox_per_height, smooth = False, sigma = 0.
     """
 
     # h_Omega
-    height = voxelsize * vox_per_height
     h_map_scaled = ld.maps_and_distances.scale_hmap(h_map01, height)
     h_map_scaled = ld.maps_and_distances.h_map_settle_rounding_error(h_map_scaled, voxelsize)
 
@@ -354,7 +353,7 @@ def lambda_gi_map_3d(geom, voxelsize, smooth = False, sigma = 0.0):
     return h_map_scaled, lambda1, lambda2
 
 
-def lambda_total_map(h_map01, voxelsize, vox_per_height, channelwidth, solidframe, smooth, sigma, crosssection, cs_weight):
+def lambda_total_map(h_map01, voxelsize, height, channelwidth, solidframe, smooth, sigma, crosssection, cs_weight):
     """
 
     Parameters
@@ -365,8 +364,8 @@ def lambda_total_map(h_map01, voxelsize, vox_per_height, channelwidth, solidfram
         1 (fully fluid voxel).
     voxelsize : float [ m ]
         Voxelsize of the domain.
-    vox_per_height : int 
-        Number of voxels per h_Omega.
+    height : float [ m ]
+        Height of the domain.
     channelwidth : string
         mean : return mean channel width per column
         min  : return min channel width per column
@@ -403,14 +402,13 @@ def lambda_total_map(h_map01, voxelsize, vox_per_height, channelwidth, solidfram
     """
 
     # h_Omega
-    height = voxelsize * vox_per_height
     h_map_scaled = ld.maps_and_distances.scale_hmap(h_map01, height)
     h_map_scaled = ld.maps_and_distances.h_map_settle_rounding_error(h_map_scaled, voxelsize)
 
     # Compute singular maps
-    lambda1_wh, lambda2_wh = lambda_wh_map(h_map01, voxelsize, vox_per_height, channelwidth, solidframe, crosssection, cs_weight)
-    lambda1_gi, lambda2_gi = lambda_gi_map(h_map01, voxelsize, vox_per_height, smooth, sigma)
-    h_Omega_by_hx = ld.maps_and_distances.get_hratio_map(h_map_scaled, voxelsize, vox_per_height)
+    lambda1_wh, lambda2_wh = lambda_wh_map(h_map01, voxelsize, height, channelwidth, solidframe, crosssection, cs_weight)
+    lambda1_gi, lambda2_gi = lambda_gi_map(h_map01, voxelsize, height, smooth, sigma)
+    h_Omega_by_hx = ld.maps_and_distances.get_hratio_map(h_map_scaled, voxelsize, height)
 
     lambda1_total = lambda1_wh * lambda1_gi * h_Omega_by_hx
     lambda2_total = lambda2_wh * lambda2_gi * h_Omega_by_hx
@@ -429,8 +427,6 @@ def lambda_total_map_3d(geom, voxelsize, channelwidth, solidframe, crosssection,
         One  -> indictaes solid voxel.
     voxelsize : float [ m ]
         Voxelsize of the domain.
-    vox_per_height : int 
-        Number of voxels per h_Omega.
     channelwidth : string
         mean : return mean channel width per column
         min  : return min channel width per column

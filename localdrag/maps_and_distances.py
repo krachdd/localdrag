@@ -324,7 +324,7 @@ def get_wl_per_3d_slice(geom2d_slice, vox_per_height):
     return cmap, rmap
 
 
-def get_wl_maps(h_map01, vox_per_height, voxelsize, solidframe, channelwidth):
+def get_wl_maps(h_map01, height, voxelsize, solidframe, channelwidth):
     """
     
     Parameters
@@ -335,8 +335,8 @@ def get_wl_maps(h_map01, vox_per_height, voxelsize, solidframe, channelwidth):
         1 (fully fluid voxel).
     voxelsize : float [ m ]
         Voxelsize of the domain.
-    vox_per_height : int 
-        Number of voxels per h_Omega.
+    height : float [ m ]
+        Height of the domain.
     channelwidth : string
         mean : return mean channel width per column
         min  : return min channel width per column
@@ -381,13 +381,14 @@ def get_wl_maps(h_map01, vox_per_height, voxelsize, solidframe, channelwidth):
     cweight = np.zeros(h_map01.shape)
 
     # Sanatize h_map01
-    h_map01 = h_map01_sanatize(h_map01, voxelsize, vox_per_height)
+    h_map01 = h_map01_sanatize(h_map01, voxelsize, height)
 
     # get information regarding periodicity
     row_per = solidframe[1] 
     col_per = solidframe[0]
 
-    val_per_max = 100 * vox_per_height
+    vox_per_height = int(np.round(height/voxelsize)) 
+    val_per_max    = 100 * vox_per_height
 
     row_max = h_map01.shape[0]
     col_max = h_map01.shape[1]
@@ -680,7 +681,7 @@ def h_map_settle_rounding_error(h_map_scaled, voxelsize):
     return h_map_scaled
 
 
-def h_map01_sanatize(h_map01, voxelsize, vox_per_height):
+def h_map01_sanatize(h_map01, voxelsize, height):
 
     """
     
@@ -691,6 +692,8 @@ def h_map01_sanatize(h_map01, voxelsize, vox_per_height):
         scaled by the voxelsize
     voxelsize : float [ m ]
         Voxelsize of the domain.
+    height : float [ m ]
+        Height of the domain.
     vox_per_height : int 
         Number of voxels per h_Omega.
 
@@ -705,7 +708,6 @@ def h_map01_sanatize(h_map01, voxelsize, vox_per_height):
     
     """
 
-    height = voxelsize * vox_per_height
     # names not matching here!
     h_map01 = scale_hmap(h_map01, height)
     h_map01 = h_map_settle_rounding_error(h_map01, voxelsize)
@@ -714,7 +716,7 @@ def h_map01_sanatize(h_map01, voxelsize, vox_per_height):
     return h_map01
 
 
-def get_hratio_map(h_map_scaled, voxelsize, vox_per_height):
+def get_hratio_map(h_map_scaled, voxelsize, height):
     
     """
     
@@ -725,8 +727,8 @@ def get_hratio_map(h_map_scaled, voxelsize, vox_per_height):
         scaled by the voxelsize
     voxelsize : float [ m ]
         Voxelsize of the domain.
-    vox_per_height : int 
-        Number of voxels per h_Omega.
+    height : float [ m ]
+        Height of the domain.
 
 
     Returns
@@ -736,8 +738,7 @@ def get_hratio_map(h_map_scaled, voxelsize, vox_per_height):
     
     """
 
-    h_Omega = voxelsize * vox_per_height
-    h_Omega_map = np.multiply(np.ones(h_map_scaled.shape), h_Omega) 
+    h_Omega_map = np.multiply(np.ones(h_map_scaled.shape), height) 
 
     return np.divide(h_Omega_map, h_map_scaled, out=np.zeros_like(h_Omega_map), where=h_map_scaled!=0)
 

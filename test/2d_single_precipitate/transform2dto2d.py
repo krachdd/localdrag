@@ -64,34 +64,47 @@ perp -> perpendicular pressure gradient direction
 
 #plotResults = False
 #vox_per_height = 36
-MINW = False
-solidframe = [False, True] # why is second entry true?
-sigma = 0.0
-smooth = False
-cs_weight = False
-channelwidth = 'mean'
-crosssection = 'mean'
-#voxelsize = 1e-6 #[m]
-#folderPath = "../pgmfiles_new"
+# MINW = False
+# solidframe = [False, True] # why is second entry true?
+# sigma = 0.0
+# smooth = False
+# cs_weight = False
+# channelwidth = 'mean'
+# crosssection = 'mean'
+# #voxelsize = 1e-6 #[m]
+# #folderPath = "../pgmfiles_new"
 ### --------------------------
 
 argParser = argparse.ArgumentParser()
-argParser.add_argument("-dir", "--pgmDirectory", help="path to directory where .pgm files are located")
-argParser.add_argument("-vs", "--voxelSize", type=float, help="defines the voxel size of the image in [m]")
-argParser.add_argument("-height", "--heightOfDomain", type=float, help="defines the height of the domain [m]")
-argParser.add_argument("-pltRes", "--plotResults", action='store_true', default=False, help="Defines if the results of the lambda values should be stored as a png file, default is False")
-argParser.add_argument("-method", "--methodLambda", default = "total", help="defines the the method which is used to calculate the lambda methods. Option are 'wh_only', 'grad_only', 'total', or 'all' which creates the lambda values for all types in separate folders. The default method is 'total' ")
+argParser.add_argument("-dir",       "--pgmDirectory",                                                      help="Path to directory where .pgm files are located.")
+argParser.add_argument("-vs",        "--voxelSize",       type=float,                                       help="Defines the voxel size of the image in [m].")
+argParser.add_argument("-height",    "--heightOfDomain",  type=float,                                       help="Defines the height of the domain [m].")
+argParser.add_argument("-pltRes",    "--plotResults",                 action='store_true', default=False,   help="Plot results of the lambda values should be stored as a png file, default is False.")
+argParser.add_argument("-method",    "--methodLambda",                                     default="total", help="Method which is used to calculate the lambda fields. Options are 'wh_only', 'grad_only', 'total', or 'all' which creates the lambda values for all types in separate folders. The default method is 'total'")
+argParser.add_argument("-minw",      "--minimum_w",                   action='store_true', default=False,   help="Use the minimum width for all ew ratios. Default is False.")
+argParser.add_argument("-sfx",       "--solidframex",                 action='store_true', default=False,   help="Actual domain has a solid frame in x direction. Important for computation of channel width. If False, periodicity is assumed. Default is False.")
+argParser.add_argument("-sfy",       "--solidframey",                 action='store_true', default=False,   help="Actual domain has a solid frame in y direction. Important for computation of channel width. If False, periodicity is assumed. Default is False.")
+argParser.add_argument("-sigma",     "--sigma",           type=float,                      default=0.0,     help="Standard deviation for Gaussian kernel. if smoothing the gradient is switched on.")
+argParser.add_argument("-smooth",    "--smooth",                      action='store_true', default=False,   help="Smooth the gradient before factor computation. Default is False")
+argParser.add_argument("-csweight",  "--csweight",                    action='store_true', default=False,   help="Weight the w/h ratio by the relative area. This is introduced since we approximate arbitrary cross-sections by rectangles. For higher perimeter-to-area ratios this results in an error which is reduces by this weight. Default is False.")
+argParser.add_argument("-cw",        "--channelwidth",    type=str,                        default="mean",  help="Averaging method for the channelwidth. Default is mean. Also possible: harmonic or min.")
+argParser.add_argument("-cs",        "--crosssection",    type=str,                        default="mean",  help="Averaging method for crosssection values. Default is mean. Also possible: min or different.")
+
 
 args = argParser.parse_args()
 
 pgmDirectory = args.pgmDirectory
-voxelsize = args.voxelSize
-height = args.heightOfDomain
-plotResults = args.plotResults
-methodInput = args.methodLambda
-
-# this is not nice - we shouldn't the parameter vox_per_height in the d2to2d option, if possible
-vox_per_height = round(height/voxelsize)
+voxelsize    = args.voxelSize
+height       = args.heightOfDomain
+plotResults  = args.plotResults
+methodInput  = args.methodLambda
+MINW         = args.minimum_w
+solidframe   = list([args.solidframex, args.solidframey])
+sigma        = args.sigma
+smooth       = args.smooth
+cs_weight    = args.csweight
+channelwidth = args.channelwidth
+crosssection = args.crosssection
 
 all_files = natsorted(glob.glob(pgmDirectory + "/*.pgm"))
 
@@ -120,15 +133,14 @@ for file in all_files:
         #outpath = f'2d_{method}/'
         print(f'Used method: {method}')
         # Scale hmap with h_Omega
-        #height = voxelsize * vox_per_height
         h_map_scaled = ld.maps_and_distances.scale_hmap(h_map01, height)
 
         if method == 'grad_only':
-            lambda1, lambda2 = ld.create_lambda_maps.lambda_gi_map(h_map01, voxelsize, vox_per_height, smooth, sigma)
+            lambda1, lambda2 = ld.create_lambda_maps.lambda_gi_map(h_map01, voxelsize, height, smooth, sigma)
         elif method == 'wh_only':
-            lambda1, lambda2 = ld.create_lambda_maps.lambda_wh_map(h_map01, voxelsize, vox_per_height, channelwidth, solidframe, crosssection, cs_weight)
+            lambda1, lambda2 = ld.create_lambda_maps.lambda_wh_map(h_map01, voxelsize, height, channelwidth, solidframe, crosssection, cs_weight)
         elif method == 'total':
-            lambda1, lambda2 = ld.create_lambda_maps.lambda_total_map(h_map01, voxelsize, vox_per_height, channelwidth, solidframe, smooth, sigma, crosssection, cs_weight)
+            lambda1, lambda2 = ld.create_lambda_maps.lambda_total_map(h_map01, voxelsize, height, channelwidth, solidframe, smooth, sigma, crosssection, cs_weight)
         else:
             raise ValueError('No valid method defined.')
 
