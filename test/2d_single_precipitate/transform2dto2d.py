@@ -31,6 +31,7 @@ THE SOFTWARE.
 import numpy as np
 import os, sys, glob
 import matplotlib.pyplot as plt
+import argparse
 from natsort import natsorted
 
 sys.path.append('../../')
@@ -61,18 +62,38 @@ perp -> perpendicular pressure gradient direction
 
 """
 
-plotResults = True
-vox_per_height = 36
+#plotResults = False
+#vox_per_height = 36
 MINW = False
-solidframe = [False, True]
+solidframe = [False, True] # why is second entry true?
 sigma = 0.0
 smooth = False
 cs_weight = False
 channelwidth = 'mean'
 crosssection = 'mean'
+#voxelsize = 1e-6 #[m]
+#folderPath = "../pgmfiles_new"
 ### --------------------------
 
-all_files = natsorted(glob.glob("../pgmfiles/hx_*.pgm"))
+argParser = argparse.ArgumentParser()
+argParser.add_argument("-dir", "--pgmDirectory", help="path to directory where .pgm files are located")
+argParser.add_argument("-vs", "--voxelSize", type=float, help="defines the voxel size of the image in [m]")
+argParser.add_argument("-height", "--heightOfDomain", type=float, help="defines the height of the domain [m]")
+argParser.add_argument("-pltRes", "--plotResults", action='store_true', default=False, help="Defines if the results of the lambda values should be stored as a png file, default is False")
+argParser.add_argument("-method", "--methodLambda", default = "total", help="defines the the method which is used to calculate the lambda methods. Option are 'wh_only', 'grad_only', 'total', or 'all' which creates the lambda values for all types in separate folders. The default method is 'total' ")
+
+args = argParser.parse_args()
+
+pgmDirectory = args.pgmDirectory
+voxelsize = args.voxelSize
+height = args.heightOfDomain
+plotResults = args.plotResults
+methodInput = args.methodLambda
+
+# this is not nice - we shouldn't the parameter vox_per_height in the d2to2d option, if possible
+vox_per_height = round(height/voxelsize)
+
+all_files = natsorted(glob.glob(pgmDirectory + "/*.pgm"))
 
 # loop through all .raw files in the folder and create h_map, lambda1, lambda2
 for file in all_files:
@@ -87,14 +108,19 @@ for file in all_files:
     # periodicity for the channel width.
     h_map01 = ld.wrap_import.h_map_frame(h_map01)
     
-    voxelsize = ld.wrap_import.getVoxelSizeFromName(filename)
+    #voxelsize = ld.wrap_import.getVoxelSizeFromName(filename)
 
     for method in ['wh_only', 'grad_only', 'total']:
-        os.system(f'mkdir -p 2d_{method}')
-        outpath = f'2d_{method}/'
+        if methodInput != 'all' and methodInput != method:
+            continue
+        current_directory = os.getcwd()
+        outpath = current_directory + "/" + pgmDirectory.split("/")[-1] + "_" + method
+        print("Outpath = " + outpath)
+        os.system(f'mkdir -p {outpath}')
+        #outpath = f'2d_{method}/'
         print(f'Used method: {method}')
         # Scale hmap with h_Omega
-        height = voxelsize * vox_per_height
+        #height = voxelsize * vox_per_height
         h_map_scaled = ld.maps_and_distances.scale_hmap(h_map01, height)
 
         if method == 'grad_only':
@@ -112,9 +138,9 @@ for file in all_files:
         lambda1, size = ld.write_maps.remove_temp_frame(lambda1)
         lambda2, size = ld.write_maps.remove_temp_frame(lambda2)
 
-        fn = filename.replace('../pgmfiles/', '')
+        fn = filename.split('/')[-1]
         fn = fn.replace('.pgm', '')
-
+        
         # Write the domains for Dumux
         ld.write_maps.write2txt(outpath, fn, 'lambda1', lambda1)
         ld.write_maps.write2txt(outpath, fn, 'lambda2', lambda2)

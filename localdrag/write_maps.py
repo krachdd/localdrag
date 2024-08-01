@@ -56,8 +56,9 @@ def write2txt(path, fn, prefix, array):
 
     
     """
-    
-    np.savetxt(f'{path}/{prefix}_shape_{array.shape[0]}_{array.shape[1]}_{fn}.txt', np.flip(array, axis = 0))
+    fn_noPrefix = fn.replace("hx_", "")
+    #np.savetxt(f'{path}/{prefix}_shape_{array.shape[0]}_{array.shape[1]}_{fn}.txt', np.flip(array, axis = 0))
+    np.savetxt(f'{path}/{prefix}_{fn_noPrefix}.txt', np.flip(array, axis = 0))
 
 
 def write2pgm(path, fn, prefix, array):
@@ -80,7 +81,8 @@ def write2pgm(path, fn, prefix, array):
 
     
     """
-    filename = f'{path}/{prefix}_shape_{array.shape[0]}_{array.shape[1]}_{fn}.pgm'
+    #filename = f'{path}/{prefix}_shape_{array.shape[0]}_{array.shape[1]}_{fn}.pgm'
+    filename = f'{path}/{fn}.pgm'
     
     # Scale array no range {0 - 255}
     array = np.around((array / np.max(array))  * 255)
