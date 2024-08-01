@@ -60,19 +60,6 @@ perp -> perpendicular pressure gradient direction
 
 """
 
-#plotResults = False
-#vox_per_height = 36
-# MINW = False
-# solidframe = [False, True] # why is second entry true?
-# sigma = 0.0
-# smooth = False
-# cs_weight = False
-# channelwidth = 'mean'
-# crosssection = 'mean'
-# #voxelsize = 1e-6 #[m]
-# #folderPath = "../pgmfiles_new"
-### --------------------------
-
 argParser = argparse.ArgumentParser()
 argParser.add_argument("-dir",       "--pgmDirectory",                                                      help="Path to directory where .pgm files are located.")
 argParser.add_argument("-vs",        "--voxelSize",       type=float,                                       help="Defines the voxel size of the image in [m].")
@@ -154,7 +141,7 @@ for file in all_files:
         # Write the domains for Dumux
         ld.write_maps.write2txt(outpath, fn, 'lambda1', lambda1)
         ld.write_maps.write2txt(outpath, fn, 'lambda2', lambda2)
-        ld.write_maps.write2pgm(outpath, fn, 'hx', h_map_scaled)
+        ld.write_maps.write2pgm(outpath, f'hx_{fn}', h_map_scaled)
 
         if plotResults:
             fig, axs = plt.subplots(1, 3, figsize=(20, 4))
