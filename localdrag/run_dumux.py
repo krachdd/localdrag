@@ -62,7 +62,6 @@ def update_input_parameter_file(folder, myfilestr, md):
 
     hx_file = f'{myfilestr}.pgm'
 
-    print(hx_file)
 
     if md['lambda_given']:
         lambda1_file = myfilestr.replace('hx', 'lambda1')
