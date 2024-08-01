@@ -31,8 +31,7 @@ THE SOFTWARE.
 import numpy as np
 import os, sys, glob
 import matplotlib.pyplot as plt
-
-sys.path.append('../../')
+import argparse
 
 import localdrag as ld
 from localdrag import *
@@ -70,7 +69,7 @@ vox_per_height = args.voxperheight
 voxelsize      = args.voxelSize
 height         = voxelsize * vox_per_height
 
-for file in glob.glob(datadir):
+for file in glob.glob(f'{datadir}/*.raw'):
     print("Processing file: " + file)
     filename = file
     size = wrap_import.getNumVoxelFromName(filename)
@@ -84,8 +83,8 @@ for file in glob.glob(datadir):
     h_map01 = evaluate3d.get_hmap01(geom)
     h_map_scaled = maps_and_distances.scale_hmap(h_map01, height)
 
-    fn = filename.replace('../rawfiles/', '')
+    fn = filename.replace(f'{datadir}/', '')
     fn = fn.replace('.raw', '')
 
-    write_maps.write2pgm('./', fn, 'hx', h_map_scaled)
+    write_maps.write2pgm('./', f'hx_{fn}', h_map_scaled)
 

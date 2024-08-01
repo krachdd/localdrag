@@ -61,7 +61,7 @@ def write2txt(path, fn, prefix, array):
     np.savetxt(f'{path}/{prefix}_{fn_noPrefix}.txt', np.flip(array, axis = 0))
 
 
-def write2pgm(path, fn, prefix, array):
+def write2pgm(path, fn, array):
     """
     
     Parameters
@@ -70,8 +70,6 @@ def write2pgm(path, fn, prefix, array):
         Path in storage to save file. 
     fn   : string
         Filename.
-    prefix : string
-        Prefix depending on map to write.
     array : numpy.ndarray
         Array/map to write.
 

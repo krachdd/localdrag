@@ -34,8 +34,6 @@ import matplotlib.pyplot as plt
 import argparse
 from natsort import natsorted
 
-sys.path.append('../../')
-
 import localdrag as ld
 from localdrag import *
 
