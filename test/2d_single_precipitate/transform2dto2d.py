@@ -76,7 +76,7 @@ crosssection = 'mean'
 ### --------------------------
 
 argParser = argparse.ArgumentParser()
-argParser.add_argument("-dir", "--workingDirectory", help="working directory with .pgm files")
+argParser.add_argument("-dir", "--pgmDirectory", help="path to directory where .pgm files are located")
 argParser.add_argument("-vs", "--voxelSize", type=float, help="defines the voxel size of the image in [m]")
 argParser.add_argument("-height", "--heightOfDomain", type=float, help="defines the height of the domain [m]")
 argParser.add_argument("-pltRes", "--plotResults", action='store_true', default=False, help="Defines if the results of the lambda values should be stored as a png file, default is False")
@@ -84,7 +84,7 @@ argParser.add_argument("-method", "--methodLambda", default = "total", help="def
 
 args = argParser.parse_args()
 
-workingDirectory = args.workingDirectory + "/"
+pgmDirectory = args.pgmDirectory
 voxelsize = args.voxelSize
 height = args.heightOfDomain
 plotResults = args.plotResults
@@ -93,7 +93,7 @@ methodInput = args.methodLambda
 # this is not nice - we shouldn't the parameter vox_per_height in the d2to2d option, if possible
 vox_per_height = round(height/voxelsize)
 
-all_files = natsorted(glob.glob(workingDirectory + "*.pgm"))
+all_files = natsorted(glob.glob(pgmDirectory + "/*.pgm"))
 
 # loop through all .raw files in the folder and create h_map, lambda1, lambda2
 for file in all_files:
@@ -113,7 +113,9 @@ for file in all_files:
     for method in ['wh_only', 'grad_only', 'total']:
         if methodInput != 'all' and methodInput != method:
             continue
-        outpath = workingDirectory + method
+        current_directory = os.getcwd()
+        outpath = current_directory + "/" + pgmDirectory.split("/")[-1] + "_" + method
+        print("Outpath = " + outpath)
         os.system(f'mkdir -p {outpath}')
         #outpath = f'2d_{method}/'
         print(f'Used method: {method}')
@@ -136,11 +138,9 @@ for file in all_files:
         lambda1, size = ld.write_maps.remove_temp_frame(lambda1)
         lambda2, size = ld.write_maps.remove_temp_frame(lambda2)
 
-        fn = filename.replace(workingDirectory, '')
+        fn = filename.split('/')[-1]
         fn = fn.replace('.pgm', '')
         
-        print("outpath: " + outpath)
-        print("fn: " + fn)
         # Write the domains for Dumux
         ld.write_maps.write2txt(outpath, fn, 'lambda1', lambda1)
         ld.write_maps.write2txt(outpath, fn, 'lambda2', lambda2)
