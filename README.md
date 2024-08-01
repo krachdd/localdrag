@@ -155,8 +155,8 @@ If you are using localdrag in scientific publications and in the academic contex
     author = {Krach, David and Ruf, Matthias and Steeb, Holger},
     title = {POREMAPS: A finite difference based Porous Media Anisotropic Permeability Solver for Stokes flow},
     year={2024},
-    journal={Advances in Water Resources},
-    note = {(to be submitted)} 
+    journal={Interpore Journal},
+    note = {(under review)} 
 }
 ```
 
