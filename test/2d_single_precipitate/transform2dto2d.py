@@ -105,17 +105,14 @@ for file in all_files:
     # processing, since otherwise the module assumes 
     # periodicity for the channel width.
     h_map01 = ld.wrap_import.h_map_frame(h_map01)
-    
-    #voxelsize = ld.wrap_import.getVoxelSizeFromName(filename)
 
     for method in ['wh_only', 'grad_only', 'total']:
         if methodInput != 'all' and methodInput != method:
             continue
         current_directory = os.getcwd()
-        outpath = current_directory + "/" + pgmDirectory.split("/")[-1] + "_" + method
-        print("Outpath = " + outpath)
+        outpath = f'{current_directory}/{pgmDirectory.split("/")[-1]}_{method}'
         os.system(f'mkdir -p {outpath}')
-        #outpath = f'2d_{method}/'
+
         print(f'Used method: {method}')
         # Scale hmap with h_Omega
         h_map_scaled = ld.maps_and_distances.scale_hmap(h_map01, height)

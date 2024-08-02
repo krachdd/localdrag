@@ -83,8 +83,13 @@ for file in glob.glob(f'{datadir}/*.raw'):
     h_map01 = evaluate3d.get_hmap01(geom)
     h_map_scaled = maps_and_distances.scale_hmap(h_map01, height)
 
+    current_directory = os.getcwd()
+    outpath = f'{current_directory}/{datadir.split("/")[-1]}_height'
+    os.system(f'mkdir -p {outpath}')
+
+
     fn = filename.replace(f'{datadir}/', '')
     fn = fn.replace('.raw', '')
 
-    write_maps.write2pgm('./', f'hx_{fn}', h_map_scaled)
+    write_maps.write2pgm(outpath, f'hx_{fn}', h_map_scaled)
 

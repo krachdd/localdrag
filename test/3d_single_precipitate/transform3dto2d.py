@@ -32,8 +32,7 @@ import numpy as np
 import os, sys, glob
 import matplotlib.pyplot as plt
 from natsort import natsorted
-
-sys.path.append('../../')
+import argparse
 
 import localdrag as ld
 from localdrag import *
@@ -59,17 +58,40 @@ perp -> perpendicular pressure gradient direction
 
 """
 
-plotResults = True
-MINW = False
-solidframe = [False, True]
-sigma = 0.0
-smooth = False
-cs_weight = False
-channelwidth = 'mean'
-crosssection = 'mean'
-### --------------------------
+argParser = argparse.ArgumentParser()
+argParser.add_argument("-dir",       "--rawDirectory",                                                      help="Path to directory where .pgm files are located.")
+argParser.add_argument("-vs",        "--voxelSize",       type=float,                                       help="Defines the voxel size of the image in [m].")
+argParser.add_argument("-height",    "--heightOfDomain",  type=float,                                       help="Defines the height of the domain [m].")
+argParser.add_argument("-pltRes",    "--plotResults",                 action='store_true', default=False,   help="Plot results of the lambda values should be stored as a png file, default is False.")
+argParser.add_argument("-method",    "--methodLambda",                                     default="total", help="Method which is used to calculate the lambda fields. Options are 'wh_only', 'grad_only', 'total', or 'all' which creates the lambda values for all types in separate folders. The default method is 'total'")
+argParser.add_argument("-minw",      "--minimum_w",                   action='store_true', default=False,   help="Use the minimum width for all ew ratios. Default is False.")
+argParser.add_argument("-sfx",       "--solidframex",                 action='store_true', default=False,   help="Actual domain has a solid frame in x direction. Important for computation of channel width. If False, periodicity is assumed. Default is False.")
+argParser.add_argument("-sfy",       "--solidframey",                 action='store_true', default=False,   help="Actual domain has a solid frame in y direction. Important for computation of channel width. If False, periodicity is assumed. Default is False.")
+argParser.add_argument("-sigma",     "--sigma",           type=float,                      default=0.0,     help="Standard deviation for Gaussian kernel. if smoothing the gradient is switched on.")
+argParser.add_argument("-smooth",    "--smooth",                      action='store_true', default=False,   help="Smooth the gradient before factor computation. Default is False")
+argParser.add_argument("-csweight",  "--csweight",                    action='store_true', default=False,   help="Weight the w/h ratio by the relative area. This is introduced since we approximate arbitrary cross-sections by rectangles. For higher perimeter-to-area ratios this results in an error which is reduces by this weight. Default is False.")
+argParser.add_argument("-cw",        "--channelwidth",    type=str,                        default="mean",  help="Averaging method for the channelwidth. Default is mean. Also possible: harmonic or min.")
+argParser.add_argument("-cs",        "--crosssection",    type=str,                        default="mean",  help="Averaging method for crosssection values. Default is mean. Also possible: min or different.")
 
-all_files = natsorted(glob.glob("../rawfiles/*.raw"))
+
+args = argParser.parse_args()
+
+rawDirectory = args.rawDirectory
+voxelsize    = args.voxelSize
+height       = args.heightOfDomain
+plotResults  = args.plotResults
+methodInput  = args.methodLambda
+MINW         = args.minimum_w
+solidframe   = list([args.solidframex, args.solidframey])
+sigma        = args.sigma
+smooth       = args.smooth
+cs_weight    = args.csweight
+channelwidth = args.channelwidth
+crosssection = args.crosssection
+
+
+
+all_files = natsorted(glob.glob(f"{rawDirectory}/*.raw"))
 
 # loop through all .raw files in the folder and create h_map, lambda1, lambda2
 for file in all_files:
@@ -83,8 +105,12 @@ for file in all_files:
     geom, size = ld.wrap_import.remove_frame(geom, axis = 0)
 
     for method in ['wh_only', 'grad_only', 'total']:
-        os.system(f'mkdir -p 2d_{method}')
-        outpath = f'2d_{method}/'
+        if methodInput != 'all' and methodInput != method:
+            continue
+        current_directory = os.getcwd()
+        outpath = f'{current_directory}/{rawDirectory.split("/")[-1]}_{method}'
+        os.system(f'mkdir -p {outpath}')
+
         print(f'Used method: {method}')
         if method == 'wh_only':
             h_map_scaled, lambda1, lambda2 = ld.create_lambda_maps.lambda_wh_map_3d(geom, voxelsize, channelwidth, solidframe, crosssection, cs_weight)
@@ -101,13 +127,13 @@ for file in all_files:
         lambda1, size = ld.wrap_import.remove_frame(lambda1, axis = 0)
         lambda2, size = ld.wrap_import.remove_frame(lambda2, axis = 0)
 
-        fn = filename.replace('../rawfiles/', '')
+        fn = filename.replace(f'{rawDirectory}/', '')
         fn = fn.replace('.raw', '')
 
         # Write the domains for Dumux
         ld.write_maps.write2txt(outpath, fn, 'lambda1', lambda1)
         ld.write_maps.write2txt(outpath, fn, 'lambda2', lambda2)
-        ld.write_maps.write2pgm(outpath, fn, 'hx', h_map_scaled)
+        ld.write_maps.write2pgm(outpath, f'hx_{fn}', h_map_scaled)
 
         if plotResults:
             # for i in [geom[9, :, :], h_map, lambda1, lambda2]:
