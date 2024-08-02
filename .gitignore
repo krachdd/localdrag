@@ -6,7 +6,7 @@
 
 !/test/3d_single_precipitate/test_3d_single_precipitate/*.raw
 !/test/3dtohmap/test_3d_single_precipitate/*.raw
-!/test/2d_single_precipitate/test_2d_single_precipitate/
+!/test/2d_single_precipitate/test_2d_single_precipitate/*.pgm
 
 
 
