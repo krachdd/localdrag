@@ -38,13 +38,47 @@ import localdrag as ld
 ###--------------------------------------------------------------------------------
 
 
-def distribute_args_REV_series(comm, rank):
+def distribute_args_REV_corners_series(comm, rank):
     """
     """
     argParser = argparse.ArgumentParser()
     argParser.add_argument( "-dir",      "--datadir",                                              help="Working directory with .pgm files."                              )
     argParser.add_argument( "-min_vox",  "--min_vox",          default=None,  help="Start value for voxel number."                                   )
     argParser.add_argument( "-v_step",   "--vox_step",         default=None,  help="Number of voxels per step."                                      )
+    argParser.add_argument( "-v_size",   "--voxelsize",        default=None,  help="Voxelsize in meter."                                             )
+    argParser.add_argument( "-height",   "--height",           default=None,  help="Height of domain in meter."                                      )
+    argParser.add_argument( "-solidfx",  "--solidframe_x",     default=False, help="Solid Frame in x direction."                                     )
+    argParser.add_argument( "-solidfy",  "--solidframe_y",     default=False, help="Solid Frame in y direction."                                     )
+    argParser.add_argument( "-sigma",    "--sigma",            default=0.0,   help="Smoothing length for prefactor computation."                     )
+    argParser.add_argument( "-smooth",   "--smooth",           default=0.0,   help="Smoothing applied."                     )
+    argParser.add_argument( "-csw",      "--cs_weight",        default=False, help="Weighting crosssection skewness."                                )
+    argParser.add_argument( "-cw",       "--channelwidth",     default='mean',help="Method for channelwitdh."                                        )
+    argParser.add_argument( "-cs",       "--crosssection",     default='mean',help="Method for crosssection."                                        )
+    argParser.add_argument( "-verbose",  "--verbose",          default=False ,help="Verbose mode."                                                   )
+    argParser.add_argument( "-plt",      "--plot",             default=False ,help="Plot results."                                                   )
+
+    # Initialize here for non-zero ranks
+    args = None 
+
+    try:
+        if rank == 0:
+            args = argParser.parse_args()
+    # Execute not matter the try results
+    finally:
+        args = comm.bcast(args, root = 0)
+
+    # Clean exit
+    if args is None:
+        exit(0)
+
+    return args 
+
+
+def distribute_args_REV_grid_series(comm, rank):
+    """
+    """
+    argParser = argparse.ArgumentParser()
+    argParser.add_argument( "-dir",      "--datadir",                                              help="Working directory with .pgm files."                              )
     argParser.add_argument( "-v_size",   "--voxelsize",        default=None,  help="Voxelsize in meter."                                             )
     argParser.add_argument( "-height",   "--height",           default=None,  help="Height of domain in meter."                                      )
     argParser.add_argument( "-solidfx",  "--solidframe_x",     default=False, help="Solid Frame in x direction."                                     )

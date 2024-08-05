@@ -146,17 +146,23 @@ def mirror(array, verbose = False):
     
     return array
 
-def porosity(array):
+def porosity(array, zero_is_solid):
     """
     Parameters
     ----------
     array : numpy.ndarray
         array of the domain.
+    zero_is_solid : bool
+        Flag what represents solid.
 
     Returns
     -------
     porosity : float
     
     """
-
-    return np.sum(array)/(array.shape[0]*array.shape[1])
+    if zero_is_solid == False:
+        return 1.0 - (np.sum(array)/(array.shape[0]*array.shape[1]))
+    elif zero_is_solid == True:
+        return np.sum(array)/(array.shape[0]*array.shape[1])
+    else:
+        raise ValueError('No valid error for zero_is_solid Flag!')
