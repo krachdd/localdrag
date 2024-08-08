@@ -330,7 +330,7 @@ def all_porosities(filelist, outfolder):
         array, size_ = ld.wrap_import.read_pgm(myfilestr)
         myfilestr = myfilestr.replace('.pgm', '')
         myfilestr = myfilestr.replace(f'{outfolder}/', '')
-        porosity  = ld.porespace.porosity(array)    
+        porosity  = ld.porespace.porosity(array, zero_is_solid = False)    
 
         f.write(f'{myfilestr}, {porosity}\n')
 
