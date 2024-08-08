@@ -159,7 +159,7 @@ def crawl_output_sweep(filelist, metadata):
     direction = str(datadir.split('/')[2])
     savedir   = str(datadir.split('/')[1])
 
-    fn = f'{direction}_permeabilities.txt'
+    fn = f'{direction}_permeabilities.csv'
 
     fmt    = '%02d', '%02d', '%.6g', '%.6g', '%1.5f'
     header = 'sample_row, sample_column, k11 [m^2], k12 [m^2], simtime [s]'
@@ -189,7 +189,7 @@ def crawl_output_benchmark(filelist, metadata):
 
     header = 'file, k11 [m^2], k12 [m^2], simtime [s]\n'
 
-    f = open(f'permeabilities.txt', 'w')
+    f = open(f'permeabilities.csv', 'w')
     f.write(header)
 
 
@@ -323,7 +323,7 @@ def all_porosities(filelist, outfolder):
     # fmt        = '%s', '%1.5f'
     header = 'file, phi_org [-]\n'
 
-    f = open(f'{outfolder}/porosities.txt', 'w')
+    f = open(f'{outfolder}/porosities.csv', 'w')
     f.write(header)
 
     for myfilestr in filelist:
