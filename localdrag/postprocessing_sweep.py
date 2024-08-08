@@ -32,6 +32,8 @@ import numpy as np
 import os
 import scipy
 import matplotlib.pyplot as plt
+import pandas as pd
+from io import StringIO
 
 import localdrag as ld
 
@@ -206,11 +208,31 @@ def crawl_output_benchmark(filelist, metadata):
 
         # store permeability info
         k11, k12, simtime = seek(output_file_name)
+
         f.write(f'{myfilestr}, {k11}, {k12}, {simtime}\n')
 
     f.close()
     os.chdir(currentdir)
 
+    porosities_names     = np.genfromtxt(f'{datadir}/porosities.csv', skip_header = 1, delimiter = ',', dtype = str)[:, 0]
+    porosities           = np.genfromtxt(f'{datadir}/porosities.csv', skip_header = 1, delimiter = ',')[:, -1]
+    permeabilities_names = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',', dtype = str)[:, 0]
+    permeabilities_11    = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',')[:, 1]
+
+    df1 = pd.DataFrame({'phi [-]':porosities}, index=list(porosities_names))
+    df2 = pd.DataFrame({'k11 [m^2]':permeabilities_11}, index=list(permeabilities_names))
+
+    df = df1.join(df2)
+    df_sorted = df.sort_values(by=['phi [-]'], ascending=False)
+    index =  list(df_sorted.index)
+    data  = df_sorted.to_numpy()
+
+    header2 = 'file, phi [-], k11 [m^2]\n'
+    f = open(f'{datadir}/test_results.csv', 'w')
+    f.write(header2)
+    for i in range(len(index)):
+        f.write(f'{index[i]}, {data[i, 0]}, {data[i, 1]}\n')
+    f.close()
 
 
 def merge_data(op_str, rp_str, p_str, output_file_name):
@@ -330,7 +352,7 @@ def all_porosities(filelist, outfolder):
         array, size_ = ld.wrap_import.read_pgm(myfilestr)
         myfilestr = myfilestr.replace('.pgm', '')
         myfilestr = myfilestr.replace(f'{outfolder}/', '')
-        porosity  = ld.porespace.porosity(array, zero_is_solid = False)    
+        porosity  = ld.porespace.porosity(array, zero_is_solid = True)    
 
         f.write(f'{myfilestr}, {porosity}\n')
 
