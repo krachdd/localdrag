@@ -716,33 +716,6 @@ def h_map01_sanatize(h_map01, voxelsize, height):
     return h_map01
 
 
-def get_hratio_map(h_map_scaled, voxelsize, height):
-    
-    """
-    
-    Parameters
-    ----------
-    h_map_scaled :numpy ndarray
-        2d, height of geometry
-        scaled by the voxelsize
-    voxelsize : float [ m ]
-        Voxelsize of the domain.
-    height : float [ m ]
-        Height of the domain.
-
-
-    Returns
-    -------
-    h_Omega_by_hx : numpy.ndarray 
-        2d array/map contaning relative heigth of the channel. 
-    
-    """
-
-    h_Omega_map = np.multiply(np.ones(h_map_scaled.shape), height) 
-
-    return np.divide(h_Omega_map, h_map_scaled, out=np.zeros_like(h_Omega_map), where=h_map_scaled!=0)
-
-
 def apply_empirical_wh_relation(ratios):
     """
     Parameters

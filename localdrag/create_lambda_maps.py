@@ -408,10 +408,9 @@ def lambda_total_map(h_map01, voxelsize, height, channelwidth, solidframe, smoot
     # Compute singular maps
     lambda1_wh, lambda2_wh = lambda_wh_map(h_map01, voxelsize, height, channelwidth, solidframe, crosssection, cs_weight)
     lambda1_gi, lambda2_gi = lambda_gi_map(h_map01, voxelsize, height, smooth, sigma)
-    h_Omega_by_hx = ld.maps_and_distances.get_hratio_map(h_map_scaled, voxelsize, height)
 
-    lambda1_total = lambda1_wh * lambda1_gi * h_Omega_by_hx
-    lambda2_total = lambda2_wh * lambda2_gi * h_Omega_by_hx
+    lambda1_total = lambda1_wh * lambda1_gi 
+    lambda2_total = lambda2_wh * lambda2_gi 
 
     return lambda1_total, lambda2_total
 
@@ -469,10 +468,8 @@ def lambda_total_map_3d(geom, voxelsize, channelwidth, solidframe, crosssection,
     h_map_scaled,  lambda1_wh, lambda2_wh = lambda_wh_map_3d(geom, voxelsize, channelwidth, solidframe, crosssection, cs_weight)
     _h_map_scaled, lambda1_gi, lambda2_gi = lambda_gi_map_3d(geom, voxelsize, smooth, sigma)
 
-    h_Omega_by_hx = ld.maps_and_distances.get_hratio_map(h_map_scaled, voxelsize, vox_per_height)
-
-    lambda1_total = lambda1_wh * lambda1_gi * h_Omega_by_hx
-    lambda2_total = lambda2_wh * lambda2_gi * h_Omega_by_hx
+    lambda1_total = lambda1_wh * lambda1_gi 
+    lambda2_total = lambda2_wh * lambda2_gi 
 
     return h_map_scaled, lambda1_total, lambda2_total
 
