@@ -66,4 +66,4 @@ def lambda_gi(gradient):
     """
     
     # return 12. + 2.05960697 * gradient**2 + 6.41712348 * gradient
-    return 12. + 1.22995416 * gradient**2 + 2.73999552 * gradient
+    return 12. + 2.28822792 * gradient**2 + 3.33636035 * gradient
