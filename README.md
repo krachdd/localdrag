@@ -1,4 +1,6 @@
 # Preprocessing Code for adapted Drag terms in pseudo-3D Stokes Simulations
+[![Identifier](https://img.shields.io/badge/doi-10.18419%2Fdarus--4313-d45815.svg)](https://doi.org/10.18419/darus-4313)
+
 Create geometry informed pre-factor maps for pseudo-3D Stokes simulations with Dumux based on local pore morphology. 
 The README is kept short. Please check the comments in the source code and the details in the paper for more information.
 
