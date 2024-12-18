@@ -154,12 +154,14 @@ The solver is research software and developed at a research institute. Please ci
 If you are using localdrag in scientific publications and in the academic context, please cite our publications:
 
 ```bib
-@unpublished{Krach2024a,
-    author = {Krach, David and Ruf, Matthias and Steeb, Holger},
-    title = {POREMAPS: A finite difference based Porous Media Anisotropic Permeability Solver for Stokes flow},
-    year={2024},
-    journal={Interpore Journal},
-    note = {(under review)} 
+@article{Krach2025,
+    title = {A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures},
+    journal = {Advances in Water Resources},
+    volume = {195},
+    year = {2025},
+    doi = {https://doi.org/10.1016/j.advwatres.2024.104860},
+    author = {David Krach and Felix Weinhardt and Mingfeng Wang and Martin Schneider and Holger Class and Holger Steeb},
+    keywords = {Porous media, Stokes flow, Biomineralization, Microfluidics, Image-based simulations, Computational efficiency versus accuracy}
 }
 ```
 
