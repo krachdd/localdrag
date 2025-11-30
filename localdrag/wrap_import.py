@@ -28,9 +28,10 @@ THE SOFTWARE.
 ### HEADER ------------------------------------------------------------------------
 
 import numpy as np
-import os
-import cv2
+import os, cv2, vtk
 from PIL import Image
+from pyevtk.hl import pointsToVTK as ptovtk
+from vtk.util import numpy_support as VN
 
 ###--------------------------------------------------------------------------------
 

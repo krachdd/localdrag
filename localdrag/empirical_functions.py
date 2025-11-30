@@ -33,7 +33,7 @@ import os
 
 ###--------------------------------------------------------------------------------
 
-def lambda_wh(ratio):
+def lambda_wh(ratio, solver):
     """
     
     Parameters
@@ -48,9 +48,17 @@ def lambda_wh(ratio):
 
     """
     
-    return 12. + np.divide(16., (np.exp(2.*1.36*ratio) - 1.), out=np.zeros_like(16.), where=(np.exp(2.*1.36*ratio) - 1)!=0)
+    if solver == 'stokes' or solver == 'brinkman':
+        return 12. + np.divide(16., (np.exp(2.*1.36*ratio) - 1.), out=np.zeros_like(16.), where=(np.exp(2.*1.36*ratio) - 1)!=0)
 
-def lambda_gi(gradient):
+    elif solver == 'analytical_brinkman':
+        return 12. + np.divide(13.82642817, (np.exp(2.*13.02429246*ratio) - 1.), out=np.zeros_like(13.82642817), where=(np.exp(2.*13.02429246*ratio) - 1)!=0)
+    elif solver == 'height_averaged':
+        return 1.
+    else:
+        raise ValueError('Solver not given correctly!')
+
+def lambda_gi(gradient, solver):
     """
     
     Parameters
@@ -64,5 +72,38 @@ def lambda_gi(gradient):
     Float [ - ]
     
     """
+    if solver == 'stokes' or solver == 'brinkman':
+        return 12. + 2.05960697 * gradient**2 + 6.41712348 * gradient
+
+    elif solver == 'analytical_brinkman':
+        if gradient == 0.0:
+            return 12.0
+        elif gradient >= 8:
+            return 12.0
+        else:
+            return 1.60265829 * gradient + 10.01907011
+        # return 10.0951389 * np.exp(-14.84259206*gradient) + 1.88066528
+    elif solver == 'height_averaged':
+        return 1.
+    else:
+        raise ValueError('Solver not given correctly!')
+
+
+def lambda_p(gradient):
+    """
     
-    return 12. + 2.05960697 * gradient**2 + 6.41712348 * gradient
+    Parameters
+    ----------
+    gradient : float
+        central difference quotient of the h-values of the domain
+    
+    Returns
+    -------
+    Pre-factor lambda_p dependend on the non-dimensional gray-value gradient of the domain.
+    Float [ - ]
+    
+    """
+    if gradient == 0.0:
+        return 0.0
+    else:
+        return 1.14764447 * np.exp( -5.84167621 * gradient)

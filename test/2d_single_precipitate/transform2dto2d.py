@@ -66,6 +66,7 @@ argParser.add_argument("-vs",        "--voxelSize",       type=float,           
 argParser.add_argument("-height",    "--heightOfDomain",  type=float,                                       help="Defines the height of the domain [m].")
 argParser.add_argument("-pltRes",    "--plotResults",                 action='store_true', default=False,   help="Plot results of the lambda values should be stored as a png file, default is False.")
 argParser.add_argument("-method",    "--methodLambda",                                     default="total", help="Method which is used to calculate the lambda fields. Options are 'wh_only', 'grad_only', 'total', or 'all' which creates the lambda values for all types in separate folders. The default method is 'total'")
+argParser.add_argument("-solver",    "--dumuxsolver",                                      default="stokes",help="Solver which is used in Dumux for balance of linear momentum. Options are 'stokes', 'brinkman'. The default method is 'stokes'")
 argParser.add_argument("-minw",      "--minimum_w",                   action='store_true', default=False,   help="Use the minimum width for all ew ratios. Default is False.")
 argParser.add_argument("-sfx",       "--solidframex",                 action='store_true', default=False,   help="Actual domain has a solid frame in x direction. Important for computation of channel width. If False, periodicity is assumed. Default is False.")
 argParser.add_argument("-sfy",       "--solidframey",                 action='store_true', default=False,   help="Actual domain has a solid frame in y direction. Important for computation of channel width. If False, periodicity is assumed. Default is False.")
@@ -74,6 +75,7 @@ argParser.add_argument("-smooth",    "--smooth",                      action='st
 argParser.add_argument("-csweight",  "--csweight",                    action='store_true', default=False,   help="Weight the w/h ratio by the relative area. This is introduced since we approximate arbitrary cross-sections by rectangles. For higher perimeter-to-area ratios this results in an error which is reduces by this weight. Default is False.")
 argParser.add_argument("-cw",        "--channelwidth",    type=str,                        default="mean",  help="Averaging method for the channelwidth. Default is mean. Also possible: harmonic or min.")
 argParser.add_argument("-cs",        "--crosssection",    type=str,                        default="mean",  help="Averaging method for crosssection values. Default is mean. Also possible: min or different.")
+argParser.add_argument("-pc",        "--presscorrect",               action='store_true',  default=False,   help="Employ pressure corretion term. Default is False")
 
 
 args = argParser.parse_args()
@@ -83,6 +85,7 @@ voxelsize    = args.voxelSize
 height       = args.heightOfDomain
 plotResults  = args.plotResults
 methodInput  = args.methodLambda
+dumuxsolver  = args.dumuxsolver
 MINW         = args.minimum_w
 solidframe   = list([args.solidframex, args.solidframey])
 sigma        = args.sigma
@@ -90,6 +93,8 @@ smooth       = args.smooth
 cs_weight    = args.csweight
 channelwidth = args.channelwidth
 crosssection = args.crosssection
+presscorrect = args.presscorrect
+
 
 all_files = natsorted(glob.glob(pgmDirectory + "/*.pgm"))
 
@@ -118,11 +123,36 @@ for file in all_files:
         h_map_scaled = ld.maps_and_distances.scale_hmap(h_map01, height)
 
         if method == 'grad_only':
-            lambda1, lambda2 = ld.create_lambda_maps.lambda_gi_map(h_map01, voxelsize, height, smooth, sigma)
+            lambda1, lambda2 = ld.create_lambda_maps.gi(h_map01, 
+                                                        voxelsize, 
+                                                        height, 
+                                                        smooth, 
+                                                        sigma,
+                                                        solver = dumuxsolver)
         elif method == 'wh_only':
-            lambda1, lambda2 = ld.create_lambda_maps.lambda_wh_map(h_map01, voxelsize, height, channelwidth, solidframe, crosssection, cs_weight)
+            lambda1, lambda2 = ld.create_lambda_maps.wh(h_map01, 
+                                                        voxelsize, 
+                                                        height, 
+                                                        channelwidth, 
+                                                        solidframe, 
+                                                        crosssection, 
+                                                        cs_weight,
+                                                        solver = dumuxsolver)
         elif method == 'total':
-            lambda1, lambda2 = ld.create_lambda_maps.lambda_total_map(h_map01, voxelsize, height, channelwidth, solidframe, smooth, sigma, crosssection, cs_weight)
+            lambda1, lambda2 = ld.create_lambda_maps.total(h_map01, 
+                                                           voxelsize, 
+                                                           height, 
+                                                           channelwidth, 
+                                                           solidframe, 
+                                                           smooth, 
+                                                           sigma,
+                                                           crosssection, 
+                                                           cs_weight, 
+                                                           solver = dumuxsolver)
+            if presscorrect:
+                lambdap1, lambdap2 = ld.create_lambda_maps.p(h_map01,
+                                                             voxelsize,
+                                                             height)
         else:
             raise ValueError('No valid method defined.')
 
@@ -131,6 +161,10 @@ for file in all_files:
         h_map_scaled, size = ld.write_maps.remove_temp_frame(h_map_scaled)
         lambda1, size = ld.write_maps.remove_temp_frame(lambda1)
         lambda2, size = ld.write_maps.remove_temp_frame(lambda2)
+        if method == 'total' and presscorrect:
+            lambdap1, size = ld.write_maps.remove_temp_frame(lambdap1)
+            lambdap2, size = ld.write_maps.remove_temp_frame(lambdap2)
+
 
         fn = filename.split('/')[-1]
         fn = fn.replace('.pgm', '')
@@ -138,16 +172,27 @@ for file in all_files:
         # Write the domains for Dumux
         ld.write_maps.write2txt(outpath, fn, 'lambda1', lambda1)
         ld.write_maps.write2txt(outpath, fn, 'lambda2', lambda2)
+        if method == 'total' and presscorrect:
+            ld.write_maps.write2txt(outpath, fn, 'lambdap1', lambdap1)
+            ld.write_maps.write2txt(outpath, fn, 'lambdap2', lambdap2)
+
         ld.write_maps.write2pgm(outpath, f'hx_{fn}', h_map_scaled)
 
         if plotResults:
-            fig, axs = plt.subplots(1, 3, figsize=(20, 4))
+            fig, axs = plt.subplots(1, 5, figsize=(20, 4))
             a1 = axs[0].imshow(h_map_scaled)
             a2 = axs[1].imshow(lambda1)
             a3 = axs[2].imshow(lambda2)
+            if method == 'total' and presscorrect:
+                a4 = axs[3].imshow(lambdap1)
+                a5 = axs[4].imshow(lambdap2)
+
             fig.colorbar(a1, ax = axs[0])
             fig.colorbar(a2, ax = axs[1])
             fig.colorbar(a3, ax = axs[2])
+            fig.colorbar(a4, ax = axs[3])
+            fig.colorbar(a5, ax = axs[4])
+
             plt.savefig(f'{outpath}{fn}.png')
             # plt.show()
             plt.close()

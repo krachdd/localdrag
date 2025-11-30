@@ -34,6 +34,8 @@ import scipy
 import matplotlib.pyplot as plt
 import shutil
 import time
+import concurrent.futures
+from functools import partial 
 
 import localdrag as ld
 
@@ -62,15 +64,24 @@ def update_input_parameter_file(folder, myfilestr, md):
 
     hx_file = f'{myfilestr}.pgm'
 
-
     if md['lambda_given']:
         lambda1_file = myfilestr.replace('hx', 'lambda1')
         lambda1_file = f'{lambda1_file}.txt'
         lambda2_file = myfilestr.replace('hx', 'lambda2')
         lambda2_file = f'{lambda2_file}.txt'
+        if md['presscorrect']:
+            lambdap1_file = myfilestr.replace('hx', 'lambdap1')
+            lambdap1_file = f'{lambdap1_file}.txt'
+            lambdap2_file = myfilestr.replace('hx', 'lambdap2')
+            lambdap2_file = f'{lambdap2_file}.txt'
+        else:
+            lambdap1_file = 'noFile'
+            lambdap2_file = 'noFile'
     else:
-        pfMapMain = 'noFile'
-        pfMapPerp = 'noFile'
+        lambda1_file  = 'noFile'
+        lambda2_file  = 'noFile'
+        lambdap1_file = 'noFile'
+        lambdap2_file = 'noFile'
 
 
     # cellsize  = ld.wrap_import.getNumVoxelFrom2DName( myfilestr )
@@ -80,6 +91,17 @@ def update_input_parameter_file(folder, myfilestr, md):
     size_x    = str(round( cellsize[1] * float( md['voxelsize'] ), 6 ) ) # main pressure gradient direction
     size_y    = str(round( cellsize[0] * float( md['voxelsize'] ), 6 ) ) # perp direction
 
+    if md['gov_equation'] == "brinkman":
+        gov_eq = "true"
+    elif md['gov_equation'] == "stokes":
+        gov_eq = "false"
+    else:
+        raise ValueError('No valid model given!')
+    
+    if md['presscorrect']:
+        p_correction = "true"
+    else:
+        p_correction = "false"
                 
     text_to_search_list = [ 
                             '<geomFile>', 
@@ -87,9 +109,12 @@ def update_input_parameter_file(folder, myfilestr, md):
                             '<domainSizeX>', '<domainSizeY>', 
                             '<cellsX>', '<cellsY>',
                             '<PreFactorDragFileX>', '<PreFactorDragFileY>',
+                            '<PreFactorDragPressureFileX>', '<PreFactorDragPressureFileY>',
                             '<WriteVtuData>', 
                             '<height>', 
-                            '<deltaP>'
+                            '<deltaP>',
+                            '<govEquation>',
+                            '<addPressureLambda>'
                           ]
     
     params              = [ 
@@ -98,9 +123,12 @@ def update_input_parameter_file(folder, myfilestr, md):
                             size_x, size_y, 
                             cells_x, cells_y, 
                             lambda1_file, lambda2_file,
+                            lambdap1_file, lambdap2_file,
                             str( md['vtuOutput'] ),
                             str( md['height'] ), 
-                            str( md['pressure'] )
+                            str( md['pressure'] ),
+                            gov_eq,
+                            p_correction
                           ]
     
     # print(f'Params: {params}')
@@ -166,8 +194,11 @@ def get_executeable(md):
     
 
     """
+
     if md['copy_run']:
+        print(f'{md["dumuxpath"]}/{md["executable"]}', f'{md["datadir"]}/{md["executable"]}')
         shutil.copy2(f'{md["dumuxpath"]}/{md["executable"]}', f'{md["datadir"]}/{md["executable"]}')
+
         if not os.access(f'{md["datadir"]}/{md["executable"]}', os.X_OK):
             # get access privileges
             status = os.stat(f'{md["datadir"]}/{md["executable"]}')
@@ -198,14 +229,9 @@ def run(metadata, myfilestr):
     lambda_given       = metadata['lambda_given']
     verbose            = metadata['verbose']
     copy_run           = metadata['copy_run']
-    executable         = metadata['executable']
-    parallel           = metadata['parallel']
-    
-    if parallel:
-        thread = multiprocessing.current_process()._identity[0]
-        print(f'Thread {thread}: {myfilestr}')
-    else:
-        print(f'Computing: {myfilestr}')
+    executable         = metadata['executable']    
+
+    print(f'Computing: {myfilestr}')
 
     # string operations to get filenames
     myfilestr = myfilestr.replace('.pgm', '')
@@ -213,7 +239,6 @@ def run(metadata, myfilestr):
 
     input_file_name  = f'{myfilestr}.input'
     output_file_name = f'{myfilestr}.output'
-
 
     # copy and run 
     if copy_run:
@@ -224,18 +249,37 @@ def run(metadata, myfilestr):
         start = time.time()
 
         if verbose:
-            if parallel:
-                print(f'Thread {thread}: Starting simulation.')
-            else:
-                print(f'Starting simulation.')
+            print(f'Starting simulation.')
 
         # actual dumux simulation wrapper
         run_dumux(datadir, executable, input_file_name, output_file_name)
         elapsed_time = time.time() - start
 
-        if parallel:
-            print(f'Thread {thread}: Simulation took {(elapsed_time/60):2.2f} minutes resp. {(elapsed_time):2.2f} seconds')
-        else:
-            print(f'Simulation took {(elapsed_time/60):2.2f} minutes resp. {(elapsed_time):2.2f} seconds')
+        print(f'Simulation took {(elapsed_time/60):2.2f} minutes resp. {(elapsed_time):2.2f} seconds')
+
+
+
+def parallel_run(metadata, filelist):
+    """
+
+    Parameters
+    ----------
+    metadata : dict
+        Dictionary containing simulation metadata.
+    filelist : list of str
+        list of file names.
+
+    Returns
+    -------
+    Nothing.
+
+    """
+
+    # partial object with const parameter
+    _pfunc = partial(run, metadata)
+
+    # Use ProcessPoolExecutor for parallel execution
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = {executor.submit(_pfunc, file): file for file in filelist}
 
 

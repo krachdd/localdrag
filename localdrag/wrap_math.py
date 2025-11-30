@@ -53,7 +53,7 @@ def grad2d(array, vs):
     
     """
     
-    return np.gradient(array, vs)
+    return np.gradient(array, vs, edge_order=2)
 
 
 def laplace2d(array, voxelsize):

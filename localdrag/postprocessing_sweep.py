@@ -65,12 +65,14 @@ def seek(output_file_name):
 
     file = open(output_file_name, 'r')
     lines = file.readlines()
-
+    k11_full = 0.0
     k11 = 0.0
     k12 = 0.0
     simtime = 0.0
 
     for l in lines:
+        if l.strip().startswith('darcypermeability:'):
+            k11_full = float(l.split(':')[1])
         if l.strip().startswith('k11_darcypermeability:'):
             k11 = float(l.split(':')[1])
         if l.strip().startswith('k12_darcypermeability:'):
@@ -80,7 +82,7 @@ def seek(output_file_name):
 
     file.close()
 
-    return k11, k12, simtime
+    return k11_full, k11, k12, simtime
 
 
 def get_sample(myfilestr):
@@ -124,6 +126,7 @@ def crawl_output_sweep(filelist, metadata):
 
     samples_row = []
     samples_col = []
+    all_k11_full =[]
     all_k11     = []
     all_k12     = []
     all_simtime = []
@@ -145,13 +148,15 @@ def crawl_output_sweep(filelist, metadata):
             continue
 
         # store permeability info
-        k11, k12, simtime = seek(output_file_name)
+        k11_full, k11, k12, simtime = seek(output_file_name)
+        all_k11_full.append(k11_full)
         all_k11.append(k11)
         all_k12.append(k12)
         all_simtime.append(simtime)
 
     # concatenate lists
     logdata = np.column_stack((samples_row, samples_col,
+                               all_k11_full,
                                all_k11, all_k12, 
                                all_simtime))
     logdata = logdata.astype(np.double)
@@ -164,7 +169,7 @@ def crawl_output_sweep(filelist, metadata):
     fn = f'{direction}_permeabilities.csv'
 
     fmt    = '%02d', '%02d', '%.6g', '%.6g', '%1.5f'
-    header = 'sample_row, sample_column, k11 [m^2], k12 [m^2], simtime [s]'
+    header = 'sample_row, sample_column, k11_full [m^2], k11 [m^2], k12 [m^2], simtime [s]'
     np.savetxt(f'{savedir}/{fn}', logdata, fmt = fmt, header = header, delimiter = ',')
 
 
@@ -189,7 +194,7 @@ def crawl_output_benchmark(filelist, metadata):
     currentdir = os.getcwd()
     os.chdir(datadir)
 
-    header = 'file, k11 [m^2], k12 [m^2], simtime [s]\n'
+    header = 'file, k11_full [m^2], k11 [m^2], k12 [m^2], simtime [s]\n'
 
     f = open(f'permeabilities.csv', 'w')
     f.write(header)
@@ -207,31 +212,54 @@ def crawl_output_benchmark(filelist, metadata):
             continue
 
         # store permeability info
-        k11, k12, simtime = seek(output_file_name)
+        k11_full, k11, k12, simtime = seek(output_file_name)
 
-        f.write(f'{myfilestr}, {k11}, {k12}, {simtime}\n')
+        f.write(f'{myfilestr}, {k11_full}, {k11}, {k12}, {simtime}\n')
 
     f.close()
     os.chdir(currentdir)
 
-    porosities_names     = np.genfromtxt(f'{datadir}/porosities.csv', skip_header = 1, delimiter = ',', dtype = str)[:, 0]
-    porosities           = np.genfromtxt(f'{datadir}/porosities.csv', skip_header = 1, delimiter = ',')[:, -1]
-    permeabilities_names = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',', dtype = str)[:, 0]
-    permeabilities_11    = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',')[:, 1]
+    with open(f'{datadir}/porosities.csv') as f2:
+        number_of_lines = len(f2.readlines()) -1 # the -1 is the header 
+        # print(f'Number of lines {number_of_lines}')
 
-    df1 = pd.DataFrame({'phi [-]':porosities}, index=list(porosities_names))
-    df2 = pd.DataFrame({'k11 [m^2]':permeabilities_11}, index=list(permeabilities_names))
+    if number_of_lines == 1:
+        porosities_names        = np.genfromtxt(f'{datadir}/porosities.csv', skip_header = 1, delimiter = ',', dtype = str)[0]
+        porosities              = np.genfromtxt(f'{datadir}/porosities.csv', skip_header = 1, delimiter = ',')[-1]
+        permeabilities_names    = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',', dtype = str)[0]
+        permeabilities_11_full  = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',')[1]
+        permeabilities_11       = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',')[2]
 
-    df = df1.join(df2)
+    elif number_of_lines > 1:
+        porosities_names        = np.genfromtxt(f'{datadir}/porosities.csv', skip_header = 1, delimiter = ',', dtype = str)[:, 0]
+        porosities              = np.genfromtxt(f'{datadir}/porosities.csv', skip_header = 1, delimiter = ',')[:, -1]
+        permeabilities_names    = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',', dtype = str)[:, 0]
+        permeabilities_11_full  = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',')[:, 1]
+        permeabilities_11       = np.genfromtxt(f'{datadir}/permeabilities.csv', skip_header = 1, delimiter = ',')[:, 2]
+    else:
+        raise ValueError(f'Number of lines to read from File is zero or negative!')
+
+    if number_of_lines == 1:
+        df1 = pd.DataFrame({'phi [-]':porosities}, index=[str(porosities_names)])
+        df2 = pd.DataFrame({'k11_full [m^2]':permeabilities_11_full}, index=[str(permeabilities_names)])
+        df3 = pd.DataFrame({'k11 [m^2]':permeabilities_11}, index=[str(permeabilities_names)])
+
+    elif number_of_lines > 1:
+        df1 = pd.DataFrame({'phi [-]':porosities}, index=list(porosities_names))
+        df2 = pd.DataFrame({'k11_full [m^2]':permeabilities_11_full}, index=list(permeabilities_names))
+        df3 = pd.DataFrame({'k11 [m^2]':permeabilities_11}, index=list(permeabilities_names))
+
+
+    df = df1.join(df2).join(df3)
     df_sorted = df.sort_values(by=['phi [-]'], ascending=False)
     index =  list(df_sorted.index)
     data  = df_sorted.to_numpy()
 
-    header2 = 'file, phi [-], k11 [m^2]\n'
+    header2 = 'file, phi [-], k11_full [m^2], k11 [m^2]\n'
     f = open(f'{datadir}/test_results.csv', 'w')
     f.write(header2)
     for i in range(len(index)):
-        f.write(f'{index[i]}, {data[i, 0]}, {data[i, 1]}\n')
+        f.write(f'{index[i]}, {data[i, 0]}, {data[i, 1]}, {data[i,2]}\n')
     f.close()
 
 

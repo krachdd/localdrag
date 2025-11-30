@@ -1,8 +1,8 @@
 # Preprocessing Code for adapted Drag terms in pseudo-3D Stokes Simulations
 [![Identifier](https://img.shields.io/badge/doi-10.18419%2Fdarus--4313-d45815.svg)](https://doi.org/10.18419/darus-4313)
-[![Identifier](https://img.shields.io/badge/Publication-blue)]([http://ssrn.com/abstract=4927521](https://doi.org/10.1016/j.advwatres.2024.104860))
+[![Identifier](https://img.shields.io/badge/Publication-blue)](https://doi.org/10.1016/j.advwatres.2024.104860)
 
-Create geometry informed pre-factor maps for pseudo-3D Stokes simulations with Dumux based on local pore morphology. 
+Create geometry informed pre-factor maps for pseudo-3D Stokes simulations with DumuX (or other Stokes or Brinkman Solvers) based on local pore morphology. 
 The README is kept short. Please check the comments in the source code and the details in the paper for more information.
 
 ## How to
@@ -14,33 +14,12 @@ sys.path.append('PATH_TO_SRC')
 import localdrag as ld
 from localdrag import *
 ```
-to make the interpreter search in for the required module. Required packages are listed in `requirements.txt`. Modifying the `PYTHONPATH` environment variable is also possible.
+to make the interpreter search in the source code folder for the required module. Required packages are listed in `requirements.txt`. Modifying the `PYTHONPATH` environment variable is also possible.
 
 
 ## Create geometry informed drag terms
 
-DumuX requires three files to employ an geometry informed drag term: $\lambda_1$, $\lambda_2$, $h(\mathbf{x})$. Write these by using the modules functions.
-
-### From 3D raw data
-See folder : `test/2d_single_precipitate`
-
-```python
-h_map_scaled, lambda1, lambda2 = ld.create_lambda_maps.lambda_total_map_3d(
-                                                                            geom, 
-                                                                            voxelsize, 
-                                                                            channelwidth, 
-                                                                            solidframe, 
-                                                                            crosssection, 
-                                                                            smooth, 
-                                                                            sigma, 
-                                                                            cs_weight
-                                                                          )
-
-# Write the domains for Dumux
-ld.write_maps.write2txt(outpath, fn, 'lambda1', lambda1)
-ld.write_maps.write2txt(outpath, fn, 'lambda2', lambda2)
-ld.write_maps.write2pgm(outpath, fn, 'hx', h_map_scaled) # may be same as input
-```
+DumuX requires three files to employ an geometry informed drag term: $\lambda_1$, $\lambda_2$, $h(\mathbf{x})$. Compute and save these by using the modules functions.
 
 ### From 2D image data
 See folder : `test/2d_single_precipitate`
@@ -55,7 +34,8 @@ lambda1, lambda2 = ld.create_lambda_maps.lambda_total_map(
                                                             smooth, 
                                                             sigma, 
                                                             crosssection, 
-                                                            cs_weight
+                                                            cs_weight,
+                                                            solver
                                                           )
 
 # Write the domains for Dumux
@@ -107,6 +87,9 @@ cs_weight : bool
     since we approximate arbitrary cross-sections by rectangles. 
     For higher perimeter-to-area ratios this results in an error which 
     is reduces by this weight. 
+
+solver : str
+    Solver for balance of linear momentum used in Dumux or other software.
 
 lambda1 : numpy ndarray
     2d map containing factors to use in DUMUX simulator

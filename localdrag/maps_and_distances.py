@@ -88,53 +88,6 @@ def fully_solid_per_row(h_map01):
     return rows
 
 
-def get_ids_columns(geom):
-    """
-    
-    Parameters
-    ----------
-    geom : numpy.ndarray
-        3d domain of the porous material.
-        Zero -> indicates fluid voxel.
-        One  -> indictaes solid voxel.
-
-    Returns
-    -------
-    Dictionary of colums (column number is key) with indices of voxel that are solid.
-    
-    """
-
-    cols = {}
-    
-    for i in range(geom.shape[1]):
-        cols[i] = list(np.where(geom[:, i] == 1)[0])
-    
-    return cols
-
-
-def get_ids_rows(geom):
-    """
-    
-    Parameters
-    ----------
-    geom : numpy.ndarray
-        3d domain of the porous material.
-        Zero -> indicates fluid voxel.
-        One  -> indictaes solid voxel.
-
-    Returns
-    -------
-    Dictionary of rows (row number is key) with indices of voxel that are solid.
-    
-    """
-    rows = {}
-    
-    for i in range(geom.shape[0]):
-        rows[i] = list(np.where(geom[i, :] == 1)[0])
-    
-    return rows
-
-
 def get_solid_neighbors(index, l):
     """
 
@@ -172,156 +125,6 @@ def get_solid_neighbors(index, l):
     
     return int(ln), int(rn) 
 
-
-def vox_distance(index, size, ln , rn):
-    """
-
-    Parameters
-    ----------
-    index : int
-        Index of current voxel.
-    size  : int
-        Size of domain in direction of interest.
-    ln    : int
-        Index of the left neighbor.
-    rn    : int
-        Index of the right neighbor.
-
-    Returns
-    -------
-    The "channel"-size in voxel in direction of interest;
-    alias the minimum distance between ln and rn, by taking 
-    periodic boundary conditions into account.
-        
-    """
-    if ln < rn:
-        return rn - ln -1
-    elif ln > rn and index < rn and index < ln:
-        return size - (ln - rn) -1 
-    elif ln > rn and index > ln and index > rn:
-        return size - (ln - rn) -1
-    else:
-        raise ValueError('Something went wrong with the index!')
-
-
-def get_distance_two_neighbors(index, size, ln , rn):
-    """
-
-    Parameters
-    ----------
-    index : int
-        Index of current voxel.
-    size  : int
-        Size of domain in direction of interest.
-    ln    : int
-        Index of the left neighbor.
-    rn    : int
-        Index of the right neighbor.   
-
-    Returns
-    -------
-    The minimum distance to next solid neighbor in voxel.
-        
-    """
-    if ln < rn:
-        d1 = np.abs(index - ln)
-        d2 = np.abs(rn - index)
-    elif ln > rn and index < rn and index < ln:
-        d1 = np.abs(rn - index)
-        d2 = np.abs((size - ln)) + index
-    elif ln > rn and index > ln and index > rn:
-        d1 = np.abs(index - ln)
-        d2 = np.abs((size -index)) + rn
-    else:
-        raise ValueError('Something went wrong with the index!')
-    
-    return min(d1, d2)
-    
-def get_distance_one_neighbor(index, size, n):
-    """
-
-    Parameters
-    ----------
-    index : int
-        Index of current voxel.
-    size  : int
-        Size of domain in direction of interest.
-    n     : int
-        Index of the neighbor.
-
-    Returns
-    -------
-    Minimum distance to the solid neighbor;
-    takes into account, that the domain is periodic.
-        
-    """
-    
-    d1 = np.abs(n - index)
-    d2 = size - np.abs(n - index)
-    
-    return min(d1, d2)
-
-
-def get_wl_per_3d_slice(geom2d_slice, vox_per_height):
-    """
-    
-    Parameters
-    ----------
-    geom2d_slice  : numpy.ndarray
-        2d domain.
-        Zero -> indicates fluid voxel.
-        One  -> indictaes solid voxel.
-    vox_per_height : int 
-        Number of voxels per h_Omega.
-
-
-    Returns
-    -------
-    cmap : numpy.ndarray 
-        Colum-wise check, w in this voxel. 
-    rmap : numpy.ndarray
-        Row-wise check, l  in this voxel.
-    
-    Compute w, l in an specific the cross section 
-    for every voxel in geom2d_slice.
-    Return data in integer numbers/ number of voxels per 
-    cross-section. 
-
-    """
-    
-    # get 2d geom 
-    cols = get_ids_columns(geom2d_slice)
-    rows = get_ids_rows(geom2d_slice)
-    # maps for row and column wise distance
-    rmap = np.zeros((geom2d_slice.shape))
-    cmap = np.zeros((geom2d_slice.shape))
-    
-    for i in range(geom2d_slice.shape[0]):
-        for j in range(geom2d_slice.shape[1]):
-            # only if voxel is a fluid voxel
-            if geom2d_slice[i, j] == 0:
-                # current row/col add voxel id 
-                if not rows[i]:
-                    rmap[i, j] = 100 *vox_per_height 
-                elif len(rows[i]) == 1:
-                    rmap[i, j] = geom2d_slice.shape[1] - 1
-                else:
-                    # get left neighbor and right neighbor
-                    ln, rn = get_solid_neighbors(j, rows[i])
-                    # compute distance / channel size
-                    rmap[i, j] = vox_distance(j, geom2d_slice.shape[1], ln, rn)
-                
-                if not cols[j]:
-                    cmap[i, j] = 100 *vox_per_height
-                elif len(cols[j]) == 1:
-                    cmap[i, j] = geom2d_slice.shape[0] - 1
-                else: 
-                    # get left neighbor and right neighbour
-                    ln, rn = get_solid_neighbors(i, cols[j])
-                    # compute distance / channel size
-                    cmap[i, j] = vox_distance(i, geom2d_slice.shape[0], ln, rn)
-    
-    return cmap, rmap
 
 
 def get_wl_maps(h_map01, height, voxelsize, solidframe, channelwidth):
@@ -476,137 +279,6 @@ def get_wl_maps(h_map01, height, voxelsize, solidframe, channelwidth):
     return cmap, rmap, cweight, rweight
 
 
-def get_wl_maps_3d(geom):
-    """
-    
-    Parameters
-    ----------
-    geom : numpy.ndarray
-        3d domain of the porous material.
-        Zero -> indicates fluid voxel.
-        One  -> indictaes solid voxel.
-
-    Returns
-    -------
-    w_3d : numpy.ndarray 
-        3d information w(x) in number of voxels. 
-    l_3d : numpy.ndarray
-        3d information l(x) in number of voxels.
-
-    """
-    
-    # Get a eqivalent domains to store ratios
-    w_3d = np.zeros((geom.shape)) 
-    l_3d = np.zeros((geom.shape)) 
-
-    for i in range(geom.shape[0]):
-        w_3d[i, :, :], l_3d[i, :, :] = get_wl_per_3d_slice(geom[i, :, :], geom.shape[0])
-
-    return w_3d, l_3d
-
-
-def get_wl_per_stack_3d(w_3d, l_3d, channelwidth):
-    """
-    
-    Parameters
-    ----------
-    w_3d : numpy.ndarray 
-        3d information w(x) in number of voxels. 
-    l_3d : numpy.ndarray
-        3d information l(x) in number of voxels.
-    MINW : bool
-        If true -> use min channel width
-        else -> use mean channel width
-
-    Returns
-    -------
-    mean_w_3d : numpy.ndarray 
-        3d information w(x) in number of voxels. 
-    mean_l_3d : numpy.ndarray
-        3d information l(x) in number of voxels.
-    cweight : numpy.ndarray
-        weight per cross-section, colum-wise
-        voxel-specific since effective cross-section
-        might vary
-    rweight : numpy.ndarray
-        weight per cross-section, row-wise
-        voxel-specific since effective cross-section
-        might vary
-
-    """
-    
-    mean_w_map = np.zeros((w_3d.shape[1], w_3d.shape[2]))
-    mean_l_map = np.zeros((w_3d.shape[1], w_3d.shape[2]))
-    cweight    = np.zeros((w_3d.shape[1], w_3d.shape[2]))
-    rweight    = np.zeros((w_3d.shape[1], w_3d.shape[2]))
-
-    for j in range(w_3d.shape[1]):
-        for k in range(w_3d.shape[2]):
-            w_temp = w_3d[:, j, k]
-            l_temp = l_3d[:, j, k]
-            # Delete all zeros from the array
-            w_temp = w_temp[w_temp != 0]
-            l_temp = l_temp[l_temp != 0]
-
-            # Avoid empty array warings
-            if w_temp.size == 0:
-                mean_w_map[j, k] = 0.0
-            else:
-                if channelwidth == 'min':
-                    mean_w_map[j, k] = np.min(w_temp)
-                elif channelwidth == 'mean':
-                    mean_w_map[j, k] = np.mean(w_temp)
-                elif channelwidth == 'harmonic':
-                    mean_w_map[j, k] = scipy.stats.hmean(w_temp)
-                else:
-                    raise ValueError('No valid method defined for channelwidth!')
-                cweight = np.max(w_temp)
-
-
-            if l_temp.size == 0:
-                mean_l_map[j, k] = 0.0
-            else:
-                if channelwidth == 'min':
-                    mean_l_map[j, k] = np.min(l_temp)
-                elif channelwidth == 'mean':
-                    mean_l_map[j, k] = np.mean(l_temp)
-                elif channelwidth == 'harmonic':
-                    mean_l_map[j, k] = scipy.stats.hmean(l_temp)
-                else:
-                    raise ValueError('No valid method defined for channelwidth!')
-                rweight = np.max(l_temp)
-
-    return mean_w_map, mean_l_map, cweight, rweight
-
-
-
-def get_hmap(geom, voxelsize, vox_per_height):
-    """
-    
-    Parameters
-    ----------
-    geom : numpy.ndarray
-        3d domain of the porous material.
-        Zero -> indicates fluid voxel.
-        One  -> indictaes solid voxel.
-    voxelsize : float [ m ]
-        Voxelsize of the domain.
-    vox_per_height : int 
-        Number of voxels per h_Omega.
-
-
-    Returns
-    -------
-    h_map_scaled :numpy ndarray
-        2d, height of geometry
-        scaled by the voxelsize
-    
-    """
-
-    h_map01 = ld.evaluate3d.get_hmap01(geom)
-    
-    return np.multiply(vox_per_height * voxelsize, h_map01)
-
 
 def scale_hmap(h_map01, height):
     """
@@ -716,7 +388,7 @@ def h_map01_sanatize(h_map01, voxelsize, height):
     return h_map01
 
 
-def get_hratio_map(h_map_scaled, voxelsize, height):
+def hratio_map(h_map_scaled, voxelsize, height):
     
     """
     
@@ -743,7 +415,50 @@ def get_hratio_map(h_map_scaled, voxelsize, height):
     return np.divide(h_Omega_map, h_map_scaled, out=np.zeros_like(h_Omega_map), where=h_map_scaled!=0)
 
 
-def apply_empirical_wh_relation(ratios):
+
+def Fgrad_map(h_map_scaled, voxelsize, height):
+    
+    """
+    
+    Parameters
+    ----------
+    h_map_scaled :numpy ndarray
+        2d, height of geometry
+        scaled by the voxelsize
+    voxelsize : float [ m ]
+        Voxelsize of the domain.
+    height : float [ m ]
+        Height of the domain.
+
+
+    Returns
+    -------
+    Fgrad1, Fgrad2 : numpy.ndarray 
+        2d array/map contaning the tensor. 
+    
+    """
+    # Compute gradient
+    # main is z direction is v_2 direction
+    grad_h1_main = ld.wrap_math.grad2d(h_map_scaled, voxelsize)[0]
+    # perp is y direction is v_1 direction
+    grad_h1_perp = ld.wrap_math.grad2d(h_map_scaled, voxelsize)[1] 
+
+    grad_h2_main = np.zeros((grad_h1_main.shape)) # NOT NEEDED AT THE MOMENT
+    grad_h2_perp = np.zeros((grad_h1_perp.shape)) # NOT NEEDED AT THE MOMENT
+    
+    l2norm_h1 = np.sqrt(np.multiply(grad_h1_main, grad_h1_main) + np.multiply(grad_h1_perp, grad_h1_perp))
+    l2norm_h2 = np.sqrt(grad_h2_main * grad_h2_main + grad_h2_perp * grad_h2_perp) # NOT NEEDED AT THE MOMENT
+
+    Fgrad11_h1 = (np.ones((l2norm_h1.shape)) + l2norm_h1) + grad_h1_perp * grad_h1_perp
+    Fgrad12_h1 = 0.0                                      + grad_h1_perp * grad_h1_main
+    Fgrad21_h1 = 0.0                                      + grad_h1_main * grad_h1_perp
+    Fgrad22_h1 = (np.ones((l2norm_h1.shape)) + l2norm_h1) + grad_h1_main * grad_h1_main
+
+
+    return Fgrad11_h1, Fgrad12_h1, Fgrad21_h1, Fgrad22_h1
+
+
+def apply_empirical_wh_relation(ratios, solver):
     """
     Parameters
     ----------
@@ -762,12 +477,12 @@ def apply_empirical_wh_relation(ratios):
     
     for j in range(ratios.shape[0]):
         for k in range(ratios.shape[1]):
-            f_map[j, k] = ld.empirical_functions.lambda_wh(ratios[j, k])
+            f_map[j, k] = ld.empirical_functions.lambda_wh(ratios[j, k], solver)
 
     return f_map
 
 
-def apply_empirical_grad_relation(gradient):
+def apply_empirical_grad_relation(gradient, solver):
     """
     Parameters
     ----------
@@ -785,7 +500,30 @@ def apply_empirical_grad_relation(gradient):
     
     for j in range(gradient.shape[0]):
         for k in range(gradient.shape[1]):
-            f_map[j, k] = ld.empirical_functions.lambda_gi(gradient[j, k])
+            f_map[j, k] = ld.empirical_functions.lambda_gi(gradient[j, k], solver)
+
+    return f_map
+
+
+def apply_empirical_pcorrect_relation(gradient):
+    """
+    Parameters
+    ----------
+    gradient : numpy.ndarray
+        central difference quotient of the h-values of the domain
+    
+    Returns
+    -------
+    f_map : numpy.ndarray
+        2d map containing factors to use in DUMUX simulator. 
+    """
+    
+    #factor_map_sanity_check() TODO
+    f_map = np.zeros((gradient.shape), dtype = np.float64)
+    
+    for j in range(gradient.shape[0]):
+        for k in range(gradient.shape[1]):
+            f_map[j, k] = ld.empirical_functions.lambda_p(gradient[j, k])
 
     return f_map
 
