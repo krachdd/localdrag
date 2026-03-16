@@ -224,9 +224,9 @@ def get_wl_maps(h_map01, height, voxelsize, solidframe, channelwidth):
 
                 # just one voxel is fully solid
                 elif len(rows[i]) == 1:
-                    single_index = row[i][0]
+                    single_index = rows[i][0]
                     cs_as_array = h_map01[i, :]
-                    del cs_as_array[single_index]
+                    cs_as_array = np.delete(cs_as_array, single_index)
                     index = j
                     if single_index < index:
                         index = index -1
@@ -245,11 +245,11 @@ def get_wl_maps(h_map01, height, voxelsize, solidframe, channelwidth):
                     rweight[i, j] = crosssection_weight(mod_cs_as_array, vox_per_height)
                 
                 # Check specific column
-                if (not cols[j]) and np.min(h_map01[:, j] == 1.0):
+                if (not cols[j]) and np.min(h_map01[:, j]) == 1.0:
                     cmap[i, j] = 100 *vox_per_height
                     cweight[i, j] = 1.0
 
-                elif (not cols[j]) and np.min(h_map01[:, j] < 1.0):
+                elif (not cols[j]) and np.min(h_map01[:, j]) < 1.0:
                     cs_as_array = h_map01[:, j]
                     index = i
                     mod_cs_as_array = mark_non_contributing_parts(np.copy(cs_as_array), index)
@@ -259,7 +259,7 @@ def get_wl_maps(h_map01, height, voxelsize, solidframe, channelwidth):
                 elif len(cols[j]) == 1:
                     single_index = cols[j][0]
                     cs_as_array = h_map01[:, j]
-                    del cs_as_array[single_index]
+                    cs_as_array = np.delete(cs_as_array, single_index)
                     index = i
                     if single_index < index:
                         index = index -1

@@ -168,7 +168,7 @@ def crawl_output_sweep(filelist, metadata):
 
     fn = f'{direction}_permeabilities.csv'
 
-    fmt    = '%02d', '%02d', '%.6g', '%.6g', '%1.5f'
+    fmt    = '%02d', '%02d', '%.6g', '%.6g', '%.6g', '%1.5f'
     header = 'sample_row, sample_column, k11_full [m^2], k11 [m^2], k12 [m^2], simtime [s]'
     np.savetxt(f'{savedir}/{fn}', logdata, fmt = fmt, header = header, delimiter = ',')
 

@@ -96,7 +96,7 @@ def eliminate_unconnected(array, binarized, zero_is_solid, verbose = False):
 
     # common features, remove 0 since solid anyhow
     common_features = np.intersect1d(features_first_slide, features_last_slide)
-    if np.all(common_features) == False:
+    if 0 in common_features:
         common_features = np.delete(common_features, 0)
     
     if verbose == True: 

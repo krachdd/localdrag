@@ -143,7 +143,7 @@ def remove_frame(array, axis = 0):
         if axis == 1:
             array = array[:, 2:array.shape[1]-2, :]
         if axis == 2:
-            array = array[:, :, 2:array.shape[0]-2]
+            array = array[:, :, 2:array.shape[2]-2]
 
     else:
         raise ValueError(f'Dimension of input array {array.ndim} incorrect.')
@@ -292,7 +292,7 @@ def getNumVoxelFrom2DName(fn):
 
 
 
-def openvtu_2d_dumux(filename, options_list):
+def openvtu_2d_dumux(filename, options_list = ['relheight', 'p', 'velocity_liq (m/s)']):
     """
     
     Parameters

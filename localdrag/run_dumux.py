@@ -30,6 +30,7 @@ THE SOFTWARE.
 
 import numpy as np
 import os
+import stat
 import scipy
 import matplotlib.pyplot as plt
 import shutil
