@@ -60,7 +60,7 @@ def pseudo3d_vtu2txt(path, prefix):
     files = glob.glob('*01.vtu')
     
     for filename in files:
-        data = ld.wrap_import.openvtu_2d_dumux(filename, constants.DUMUX_FILE_PREFIXES)
+        data = ld.wrap_import.openvtu_2d_dumux(filename, ld.constants.DUMUX_FILE_PREFIXES)
 
         points, velx, vely, velmag, p, h = ld.evaluate_pseudo3d.extract_fields(data) 
         vs = ld.wrap_import.getVoxelSizeFromName(filename)
